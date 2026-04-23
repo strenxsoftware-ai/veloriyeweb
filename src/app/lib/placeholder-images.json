@@ -50,6 +50,12 @@
       "imageHint": "linen clothing"
     },
     {
+      "id": "about-craft",
+      "description": "Close up of luxury fabric and stitching",
+      "imageUrl": "https://picsum.photos/seed/craft/800/1000",
+      "imageHint": "fabric detail"
+    },
+    {
       "id": "insta-1",
       "description": "Lifestyle fashion shot",
       "imageUrl": "https://picsum.photos/seed/i1/400/400",

@@ -5,6 +5,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import Link from "next/link";
 
 export const Hero = () => {
   const heroImg = PlaceHolderImages.find(img => img.id === "hero-model");
@@ -12,7 +13,7 @@ export const Hero = () => {
   return (
     <section className="relative h-screen w-full flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
-        {heroImg?.imageUrl && (
+        {heroImg?.imageUrl ? (
           <Image
             src={heroImg.imageUrl}
             alt="Viloryi Premium Collection"
@@ -21,7 +22,7 @@ export const Hero = () => {
             className="object-cover object-center scale-105 animate-pulse-slow"
             data-ai-hint="elegant fashion"
           />
-        )}
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-background/20 to-transparent" />
       </div>
 
@@ -35,12 +36,16 @@ export const Hero = () => {
             Experience the harmony of traditional silhouettes and modern minimalism with our premium Kurti Sets & Co-ord Styles.
           </p>
           <div className="pt-8 flex flex-col sm:flex-row gap-4">
-            <Button className="bg-primary text-primary-foreground text-sm tracking-[0.2em] rounded-none px-12 py-7 h-auto font-semibold hover:bg-foreground/90 transition-all">
-              SHOP NOW
-            </Button>
-            <Button variant="outline" className="border-foreground text-foreground text-sm tracking-[0.2em] rounded-none px-12 py-7 h-auto font-semibold hover:bg-foreground hover:text-background transition-all">
-              EXPLORE STYLES
-            </Button>
+            <Link href="/#collections">
+              <Button className="bg-primary text-primary-foreground text-sm tracking-[0.2em] rounded-none px-12 py-7 h-auto font-semibold hover:bg-foreground/90 transition-all">
+                SHOP NOW
+              </Button>
+            </Link>
+            <Link href="/about">
+              <Button variant="outline" className="border-foreground text-foreground text-sm tracking-[0.2em] rounded-none px-12 py-7 h-auto font-semibold hover:bg-foreground hover:text-background transition-all">
+                OUR STORY
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

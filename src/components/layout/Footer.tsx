@@ -7,7 +7,7 @@ import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from "lucide-react"
 
 export const Footer = () => {
   return (
-    <footer id="about" className="bg-primary text-primary-foreground py-20">
+    <footer className="bg-primary text-primary-foreground py-20">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-24 mb-16">
           <div className="col-span-1 md:col-span-1 space-y-6">
@@ -25,10 +25,9 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-xs tracking-[0.3em] font-bold uppercase">Quick Links</h4>
             <ul className="space-y-4 text-sm font-light opacity-70">
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Shop All</Link></li>
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">New Arrivals</Link></li>
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Collections</Link></li>
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Our Story</Link></li>
+              <li><Link href="/" className="hover:opacity-100 hover:text-accent transition-all">Shop All</Link></li>
+              <li><Link href="/#collections" className="hover:opacity-100 hover:text-accent transition-all">Collections</Link></li>
+              <li><Link href="/about" className="hover:opacity-100 hover:text-accent transition-all">Our Story</Link></li>
             </ul>
           </div>
           
@@ -38,7 +37,6 @@ export const Footer = () => {
               <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Shipping Policy</Link></li>
               <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Returns & Exchanges</Link></li>
               <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Size Guide</Link></li>
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">FAQs</Link></li>
             </ul>
           </div>
           

@@ -1,15 +1,12 @@
-
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useShop, type Product } from "@/context/ShopContext";
-import { Eye, Heart } from "lucide-react";
+import { useShop } from "@/context/ShopContext";
+import { ProductCard } from "@/components/shop/ProductCard";
 
 export const FeaturedProducts = () => {
-  const { products, addToCart } = useShop();
+  const { products } = useShop();
 
   return (
     <section className="py-24 bg-muted/20">
@@ -25,55 +22,11 @@ export const FeaturedProducts = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product)} />
+          {products.slice(0, 4).map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </div>
     </section>
-  );
-};
-
-const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: () => void }) => {
-  return (
-    <div className="group space-y-4 bg-background p-4 shadow-sm hover:shadow-xl transition-all duration-500">
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-        {product.imageUrl && (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        )}
-        
-        <div className="absolute inset-x-0 bottom-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 space-y-2">
-          <Button 
-            onClick={onAddToCart}
-            className="w-full bg-white text-primary rounded-none tracking-widest text-[10px] font-bold h-10 hover:bg-accent hover:text-white transition-colors"
-          >
-            QUICK ADD
-          </Button>
-          <div className="flex gap-2">
-            <Link href={`/product/${product.id}`} className="flex-1">
-              <Button variant="secondary" className="w-full rounded-none h-10 bg-white/80 backdrop-blur-sm">
-                  <Eye className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Button variant="secondary" className="flex-1 rounded-none h-10 bg-white/80 backdrop-blur-sm">
-                <Heart className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-1 text-center">
-        <span className="text-[10px] text-accent tracking-[0.2em] uppercase font-bold">{product.category}</span>
-        <Link href={`/product/${product.id}`}>
-          <h3 className="text-lg font-headline tracking-wide hover:text-accent transition-colors cursor-pointer">{product.name}</h3>
-        </Link>
-        <p className="font-semibold tracking-wider">₹{product.price.toLocaleString()}</p>
-      </div>
-    </div>
   );
 };

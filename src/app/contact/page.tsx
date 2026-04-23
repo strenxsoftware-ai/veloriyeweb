@@ -84,7 +84,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="text-xs tracking-widest font-bold uppercase mb-1">Location</h4>
-                    <p className="text-lg font-medium">Mumbai, India</p>
+                    <p className="text-lg font-medium">Delhi, India</p>
                   </div>
                 </div>
               </div>

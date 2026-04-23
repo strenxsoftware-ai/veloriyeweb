@@ -44,7 +44,7 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-xs tracking-[0.3em] font-bold uppercase">Contact</h4>
             <ul className="space-y-4 text-sm font-light opacity-70">
-              <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-accent" /> Mumbai, India</li>
+              <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-accent" /> Delhi, India</li>
               <li className="flex items-center gap-3">
                 <a href="https://wa.me/919696731313" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-accent transition-colors">
                   <MessageSquare className="w-4 h-4 text-accent" /> +91 96967 31313

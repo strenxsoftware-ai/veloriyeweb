@@ -5,8 +5,9 @@ import React from "react";
 import { useShop } from "@/context/ShopContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, X, Trash2 } from "lucide-react";
+import { Plus, Minus, X, Trash2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const CartDrawer = () => {
   const { cart, removeFromCart, updateQuantity, cartTotal, setIsCartOpen } = useShop();
@@ -14,6 +15,9 @@ export const CartDrawer = () => {
   if (cart.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <SheetHeader className="sr-only">
+          <SheetTitle>Your Shopping Bag</SheetTitle>
+        </SheetHeader>
         <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-6">
           <ShoppingBag className="w-10 h-10 text-muted-foreground opacity-20" />
         </div>
@@ -28,15 +32,12 @@ export const CartDrawer = () => {
 
   return (
     <>
-      <div className="p-6 border-b flex items-center justify-between">
-        <h3 className="text-xl font-headline font-semibold tracking-widest uppercase">Your Shopping Bag</h3>
-        <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(false)}>
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
+      <SheetHeader className="p-6 border-b flex flex-row items-center justify-between space-y-0">
+        <SheetTitle className="text-xl font-headline font-semibold tracking-widest uppercase">Your Shopping Bag</SheetTitle>
+      </SheetHeader>
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {cart.map((item) => (
-          <div key={item.id} className="flex gap-4">
+          <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
             <div className="relative w-24 h-32 flex-shrink-0 bg-muted overflow-hidden">
               <Image
                 src={item.imageUrl}
@@ -53,7 +54,9 @@ export const CartDrawer = () => {
                     <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{item.category}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {item.category} {item.selectedSize && `• Size: ${item.selectedSize}`}
+                </p>
               </div>
               <div className="flex justify-between items-end">
                 <div className="flex items-center border border-muted-foreground/20 px-2 py-1 gap-4">
@@ -84,5 +87,3 @@ export const CartDrawer = () => {
     </>
   );
 };
-
-import { ShoppingBag } from "lucide-react";

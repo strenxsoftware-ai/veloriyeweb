@@ -43,7 +43,10 @@ export const Navbar = () => {
               <Button variant="ghost" size="icon"><Menu className="w-6 h-6" /></Button>
             </SheetTrigger>
             <SheetContent side="left" className="bg-background">
-              <div className="flex flex-col gap-6 pt-12">
+              <SheetHeader className="text-left border-b pb-4 mb-4">
+                <SheetTitle className="text-2xl font-headline tracking-widest">MENU</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-6 pt-4">
                 <Link href="/#collections" className="text-xl font-headline tracking-widest">COLLECTIONS</Link>
                 <Link href="/about" className="text-xl font-headline tracking-widest">ABOUT</Link>
                 <Link href="/contact" className="text-xl font-headline tracking-widest">CONTACT</Link>

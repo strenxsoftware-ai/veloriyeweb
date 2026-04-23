@@ -27,6 +27,7 @@ type ShopContextType = {
   addToCart: (product: Product, selectedSize?: string) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   cartTotal: number;
@@ -37,6 +38,23 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Load cart from local storage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("viloryi-cart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to parse cart", e);
+      }
+    }
+  }, []);
+
+  // Save cart to local storage on change
+  useEffect(() => {
+    localStorage.setItem("viloryi-cart", JSON.stringify(cart));
+  }, [cart]);
 
   const products: Product[] = [
     {
@@ -154,6 +172,11 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("viloryi-cart");
+  };
+
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
@@ -164,6 +187,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToCart,
         removeFromCart,
         updateQuantity,
+        clearCart,
         isCartOpen,
         setIsCartOpen,
         cartTotal,

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, X, Trash2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import Link from "next/link";
 
 export const CartDrawer = () => {
   const { cart, removeFromCart, updateQuantity, cartTotal, setIsCartOpen } = useShop();
@@ -80,9 +81,11 @@ export const CartDrawer = () => {
           <span className="text-lg font-bold">₹{cartTotal.toLocaleString()}</span>
         </div>
         <p className="text-xs text-muted-foreground text-center">Taxes and shipping calculated at checkout.</p>
-        <Button className="w-full bg-primary text-primary-foreground py-6 tracking-[0.2em] rounded-none hover:bg-foreground/90 transition-all font-semibold">
-          PROCEED TO CHECKOUT
-        </Button>
+        <Link href="/checkout" className="w-full" onClick={() => setIsCartOpen(false)}>
+          <Button className="w-full bg-primary text-primary-foreground py-6 tracking-[0.2em] rounded-none hover:bg-foreground/90 transition-all font-semibold">
+            PROCEED TO CHECKOUT
+          </Button>
+        </Link>
       </div>
     </>
   );

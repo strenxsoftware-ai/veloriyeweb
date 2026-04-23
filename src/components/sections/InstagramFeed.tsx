@@ -13,7 +13,7 @@ const instaImages = [
   PlaceHolderImages.find(img => img.id === "insta-4")?.imageUrl,
   PlaceHolderImages.find(img => img.id === "hero-model")?.imageUrl,
   PlaceHolderImages.find(img => img.id === "category-kurti-sets")?.imageUrl,
-];
+].filter(Boolean) as string[];
 
 export const InstagramFeed = () => {
   return (
@@ -29,7 +29,7 @@ export const InstagramFeed = () => {
           {instaImages.map((img, idx) => (
             <div key={idx} className="group relative aspect-square bg-muted overflow-hidden">
               <Image
-                src={img || ""}
+                src={img}
                 alt={`Instagram feed ${idx + 1}`}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"

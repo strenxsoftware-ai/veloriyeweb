@@ -3,9 +3,10 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useShop, type Product } from "@/context/ShopContext";
-import { ShoppingBag, Eye, Heart } from "lucide-react";
+import { Eye, Heart } from "lucide-react";
 
 export const FeaturedProducts = () => {
   const { products, addToCart } = useShop();
@@ -37,12 +38,14 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
   return (
     <div className="group space-y-4 bg-background p-4 shadow-sm hover:shadow-xl transition-all duration-500">
       <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-        <Image
-          src={product.imageUrl}
-          alt={product.name}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+        {product.imageUrl && (
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        )}
         
         <div className="absolute inset-x-0 bottom-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 space-y-2">
           <Button 
@@ -70,5 +73,3 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
     </div>
   );
 };
-
-import Link from "next/link";

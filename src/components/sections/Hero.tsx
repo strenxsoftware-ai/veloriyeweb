@@ -5,7 +5,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { ChevronRight } from "lucide-react";
 
 export const Hero = () => {
   const heroImg = PlaceHolderImages.find(img => img.id === "hero-model");
@@ -13,14 +12,16 @@ export const Hero = () => {
   return (
     <section className="relative h-screen w-full flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
-        <Image
-          src={heroImg?.imageUrl || ""}
-          alt="Viloryi Premium Collection"
-          fill
-          priority
-          className="object-cover object-center scale-105 animate-pulse-slow"
-          data-ai-hint="elegant fashion"
-        />
+        {heroImg?.imageUrl && (
+          <Image
+            src={heroImg.imageUrl}
+            alt="Viloryi Premium Collection"
+            fill
+            priority
+            className="object-cover object-center scale-105 animate-pulse-slow"
+            data-ai-hint="elegant fashion"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-background/20 to-transparent" />
       </div>
 

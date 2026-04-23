@@ -36,13 +36,15 @@ export const Categories = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {categories.map((category, idx) => (
             <Link key={idx} href={category.href} className="group relative block overflow-hidden">
-              <div className="aspect-[3/4] relative overflow-hidden">
-                <Image
-                  src={category.image || ""}
-                  alt={category.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
+              <div className="aspect-[3/4] relative overflow-hidden bg-muted">
+                {category.image && (
+                  <Image
+                    src={category.image}
+                    alt={category.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                )}
                 <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-black/30" />
                 <div className="absolute inset-0 flex items-center justify-center">
                    <div className="border border-white/40 bg-white/10 backdrop-blur-sm px-8 py-4 transform translate-y-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">

@@ -19,7 +19,7 @@ export const FeaturedProducts = () => {
             <span className="text-accent tracking-[0.3em] text-xs font-bold uppercase">Our Selection</span>
             <h2 className="text-4xl md:text-5xl font-headline">Featured Pieces</h2>
           </div>
-          <Link href="/shop" className="text-sm tracking-widest font-semibold border-b border-foreground pb-1 hover:text-accent hover:border-accent transition-all">
+          <Link href="#collections" className="text-sm tracking-widest font-semibold border-b border-foreground pb-1 hover:text-accent hover:border-accent transition-all">
             VIEW ALL PRODUCTS
           </Link>
         </div>
@@ -55,9 +55,11 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
             QUICK ADD
           </Button>
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1 rounded-none h-10 bg-white/80 backdrop-blur-sm">
-                <Eye className="w-4 h-4" />
-            </Button>
+            <Link href={`/product/${product.id}`} className="flex-1">
+              <Button variant="secondary" className="w-full rounded-none h-10 bg-white/80 backdrop-blur-sm">
+                  <Eye className="w-4 h-4" />
+              </Button>
+            </Link>
             <Button variant="secondary" className="flex-1 rounded-none h-10 bg-white/80 backdrop-blur-sm">
                 <Heart className="w-4 h-4" />
             </Button>
@@ -67,7 +69,9 @@ const ProductCard = ({ product, onAddToCart }: { product: Product, onAddToCart: 
       
       <div className="space-y-1 text-center">
         <span className="text-[10px] text-accent tracking-[0.2em] uppercase font-bold">{product.category}</span>
-        <h3 className="text-lg font-headline tracking-wide group-hover:text-accent transition-colors">{product.name}</h3>
+        <Link href={`/product/${product.id}`}>
+          <h3 className="text-lg font-headline tracking-wide hover:text-accent transition-colors cursor-pointer">{product.name}</h3>
+        </Link>
         <p className="font-semibold tracking-wider">₹{product.price.toLocaleString()}</p>
       </div>
     </div>

@@ -32,8 +32,9 @@ export const Navbar = () => {
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         <div className="flex-1 hidden md:flex gap-8">
-          <Link href="/#collections" className="text-sm font-medium tracking-widest hover:text-accent transition-colors">COLLECTIONS</Link>
-          <Link href="/about" className="text-sm font-medium tracking-widest hover:text-accent transition-colors">ABOUT</Link>
+          <Link href="/#collections" className="text-sm font-medium tracking-widest hover:text-accent transition-colors uppercase">Collections</Link>
+          <Link href="/about" className="text-sm font-medium tracking-widest hover:text-accent transition-colors uppercase">About</Link>
+          <Link href="/contact" className="text-sm font-medium tracking-widest hover:text-accent transition-colors uppercase">Contact</Link>
         </div>
 
         <div className="md:hidden">
@@ -45,6 +46,7 @@ export const Navbar = () => {
               <div className="flex flex-col gap-6 pt-12">
                 <Link href="/#collections" className="text-xl font-headline tracking-widest">COLLECTIONS</Link>
                 <Link href="/about" className="text-xl font-headline tracking-widest">ABOUT</Link>
+                <Link href="/contact" className="text-xl font-headline tracking-widest">CONTACT</Link>
                 <div className="pt-4">
                   <StyleCurator />
                 </div>

@@ -3,7 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from "lucide-react";
+import { Instagram, Facebook, Twitter, Mail, MapPin, Phone, MessageSquare } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -16,9 +16,9 @@ export const Footer = () => {
               Redefining ethnic elegance for the modern woman. Luxury, minimal, and premium silhouettes crafted with love.
             </p>
             <div className="flex gap-4">
-              <Link href="#" className="hover:text-accent transition-colors"><Instagram className="w-5 h-5" /></Link>
-              <Link href="#" className="hover:text-accent transition-colors"><Facebook className="w-5 h-5" /></Link>
-              <Link href="#" className="hover:text-accent transition-colors"><Twitter className="w-5 h-5" /></Link>
+              <a href="https://instagram.com/viloryi.official" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors"><Instagram className="w-5 h-5" /></a>
+              <a href="#" className="hover:text-accent transition-colors"><Facebook className="w-5 h-5" /></a>
+              <a href="#" className="hover:text-accent transition-colors"><Twitter className="w-5 h-5" /></a>
             </div>
           </div>
           
@@ -28,6 +28,7 @@ export const Footer = () => {
               <li><Link href="/" className="hover:opacity-100 hover:text-accent transition-all">Shop All</Link></li>
               <li><Link href="/#collections" className="hover:opacity-100 hover:text-accent transition-all">Collections</Link></li>
               <li><Link href="/about" className="hover:opacity-100 hover:text-accent transition-all">Our Story</Link></li>
+              <li><Link href="/contact" className="hover:opacity-100 hover:text-accent transition-all">Contact Us</Link></li>
             </ul>
           </div>
           
@@ -43,9 +44,17 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-xs tracking-[0.3em] font-bold uppercase">Contact</h4>
             <ul className="space-y-4 text-sm font-light opacity-70">
-              <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-accent" /> Mumbai, Maharashtra, India</li>
-              <li className="flex items-center gap-3"><Phone className="w-4 h-4 text-accent" /> +91 98765 43210</li>
-              <li className="flex items-center gap-3"><Mail className="w-4 h-4 text-accent" /> care@viloryi.com</li>
+              <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-accent" /> Mumbai, India</li>
+              <li className="flex items-center gap-3">
+                <a href="https://wa.me/919696731313" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-accent transition-colors">
+                  <MessageSquare className="w-4 h-4 text-accent" /> +91 96967 31313
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <a href="mailto:viloryi.official@gmail.com" className="flex items-center gap-3 hover:text-accent transition-colors">
+                  <Mail className="w-4 h-4 text-accent" /> viloryi.official@gmail.com
+                </a>
+              </li>
             </ul>
           </div>
         </div>

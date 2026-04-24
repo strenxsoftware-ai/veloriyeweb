@@ -1,14 +1,12 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useShop } from "@/context/ShopContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CartDrawer } from "@/components/shop/CartDrawer";
-import { StyleCurator } from "@/components/ai/StyleCurator";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -53,9 +51,6 @@ export const Navbar = () => {
                   <Link href="/#collections" className="text-xl font-headline tracking-widest">COLLECTIONS</Link>
                   <Link href="/about" className="text-xl font-headline tracking-widest">ABOUT</Link>
                   <Link href="/contact" className="text-xl font-headline tracking-widest">CONTACT</Link>
-                  <div className="pt-4">
-                    <StyleCurator />
-                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -69,10 +64,6 @@ export const Navbar = () => {
         </Link>
 
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-6">
-          <div className="hidden md:block">
-            {mounted && <StyleCurator />}
-          </div>
-          
           {mounted && (
             <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
               <SheetTrigger asChild>

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingBag, Menu, Sparkles, X } from "lucide-react";
+import { ShoppingBag, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useShop } from "@/context/ShopContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -12,9 +12,11 @@ import { StyleCurator } from "@/components/ai/StyleCurator";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { cart, setIsCartOpen, isCartOpen } = useShop();
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -38,52 +40,56 @@ export const Navbar = () => {
         </div>
 
         <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon"><Menu className="w-6 h-6" /></Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="bg-background">
-              <SheetHeader className="text-left border-b pb-4 mb-4">
-                <SheetTitle className="text-2xl font-headline tracking-widest">MENU</SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col gap-6 pt-4">
-                <Link href="/#collections" className="text-xl font-headline tracking-widest">COLLECTIONS</Link>
-                <Link href="/about" className="text-xl font-headline tracking-widest">ABOUT</Link>
-                <Link href="/contact" className="text-xl font-headline tracking-widest">CONTACT</Link>
-                <div className="pt-4">
-                  <StyleCurator />
+          {mounted && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon"><Menu className="w-6 h-6" /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="bg-background">
+                <SheetHeader className="text-left border-b pb-4 mb-4">
+                  <SheetTitle className="text-2xl font-headline tracking-widest">MENU</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-6 pt-4">
+                  <Link href="/#collections" className="text-xl font-headline tracking-widest">COLLECTIONS</Link>
+                  <Link href="/about" className="text-xl font-headline tracking-widest">ABOUT</Link>
+                  <Link href="/contact" className="text-xl font-headline tracking-widest">CONTACT</Link>
+                  <div className="pt-4">
+                    <StyleCurator />
+                  </div>
                 </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
 
         <Link href="/" className="flex-1 text-center">
-          <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-[0.2em] text-foreground">
+          <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-[0.2em] text-primary">
             VILORYI
           </h1>
         </Link>
 
         <div className="flex-1 flex items-center justify-end gap-2 md:gap-6">
           <div className="hidden md:block">
-            <StyleCurator />
+            {mounted && <StyleCurator />}
           </div>
           
-          <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingBag className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-md bg-background flex flex-col p-0">
-              <CartDrawer />
-            </SheetContent>
-          </Sheet>
+          {mounted && (
+            <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingBag className="w-5 h-5" />
+                  {mounted && cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-md bg-background flex flex-col p-0">
+                <CartDrawer />
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </nav>

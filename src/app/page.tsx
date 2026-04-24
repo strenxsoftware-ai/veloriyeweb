@@ -7,6 +7,7 @@ import { WhyChooseUs } from "@/components/sections/WhyChooseUs";
 import { Reviews } from "@/components/sections/Reviews";
 import { InstagramFeed } from "@/components/sections/InstagramFeed";
 import { Footer } from "@/components/layout/Footer";
+import { SeedData } from "@/components/SeedData";
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
       <Reviews />
       <InstagramFeed />
       <Footer />
+      <SeedData />
     </main>
   );
 }

@@ -22,7 +22,7 @@ export const InstagramFeed = () => {
         <div className="text-center mb-16 space-y-4">
           <Instagram className="w-8 h-8 mx-auto text-accent mb-4" />
           <h2 className="text-4xl font-headline tracking-widest">Follow Our Story</h2>
-          <p className="text-muted-foreground tracking-widest text-xs uppercase font-semibold">@viloryi</p>
+          <p className="text-muted-foreground tracking-widest text-xs uppercase font-semibold">@viloryi.official</p>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">

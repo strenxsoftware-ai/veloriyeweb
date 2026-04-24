@@ -28,25 +28,25 @@
     {
       "id": "product-1",
       "description": "Silk Kurti Set",
-      "imageUrl": "https://picsum.photos/seed/p1/600/800",
+      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/740b183c792d4c3dd8f63ce4a6b75c4c6e608059/kurti%20set.jpg",
       "imageHint": "premium clothing"
     },
     {
       "id": "product-2",
       "description": "Cotton Co-ord Set",
-      "imageUrl": "https://picsum.photos/seed/p2/600/800",
+      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/740b183c792d4c3dd8f63ce4a6b75c4c6e608059/co-ords%20set1.jpg",
       "imageHint": "minimal fashion"
     },
     {
       "id": "product-3",
       "description": "Evening Kurti",
-      "imageUrl": "https://picsum.photos/seed/p3/600/800",
+      "imageUrl": "https://github.com/strenxsoftware-ai/viloryimee/blob/740b183c792d4c3dd8f63ce4a6b75c4c6e608059/kurti.jpg",
       "imageHint": "luxury dress"
     },
     {
       "id": "product-4",
       "description": "Casual Day Set",
-      "imageUrl": "https://picsum.photos/seed/p4/600/800",
+      "imageUrl": "https://github.com/strenxsoftware-ai/viloryimee/blob/740b183c792d4c3dd8f63ce4a6b75c4c6e608059/kurti%20set2.jpg",
       "imageHint": "linen clothing"
     },
     {

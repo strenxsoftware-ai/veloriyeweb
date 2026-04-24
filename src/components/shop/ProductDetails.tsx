@@ -12,7 +12,8 @@ import {
   Check, 
   ChevronRight, 
   Maximize2,
-  Heart
+  Heart,
+  X
 } from "lucide-react";
 import { 
   Accordion, 
@@ -20,6 +21,13 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,6 +41,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [activeImage, setActiveImage] = useState<string>(product?.imageUrl || "");
   const [isZoomed, setIsZoomed] = useState(false);
+  const [isSizeGuideZoomed, setIsSizeGuideZoomed] = useState(false);
 
   if (!product) {
     return (
@@ -124,10 +133,40 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <span className="text-xs tracking-widest font-bold uppercase">Select Size</span>
-              <Button variant="link" className="text-[10px] h-auto p-0 tracking-widest uppercase font-bold opacity-60">
-                Size Guide
-              </Button>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="link" className="text-[10px] h-auto p-0 tracking-widest uppercase font-bold opacity-60 hover:opacity-100 transition-opacity">
+                    Size Guide
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl bg-background rounded-none border-none p-0 overflow-hidden">
+                  <DialogHeader className="p-6 border-b">
+                    <DialogTitle className="text-2xl font-headline tracking-widest uppercase">Size Guide</DialogTitle>
+                  </DialogHeader>
+                  <div className="p-6 overflow-auto max-h-[70vh]">
+                    <div className="relative w-full overflow-hidden bg-muted">
+                      <Image
+                        src="https://picsum.photos/seed/sizeguide/800/1200"
+                        alt="Viloryi Size Guide"
+                        width={800}
+                        height={1200}
+                        className={cn(
+                          "w-full h-auto transition-transform duration-500 origin-top cursor-zoom-in",
+                          isSizeGuideZoomed ? "scale-150 cursor-zoom-out" : "scale-100"
+                        )}
+                        onClick={() => setIsSizeGuideZoomed(!isSizeGuideZoomed)}
+                      />
+                    </div>
+                    <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground text-[10px] tracking-widest uppercase font-bold">
+                      <Maximize2 className="w-3 h-3" />
+                      <span>Click image to {isSizeGuideZoomed ? 'zoom out' : 'zoom in'}</span>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
+            
             <div className="flex flex-wrap gap-3">
               {SIZES.map((size) => (
                 <button

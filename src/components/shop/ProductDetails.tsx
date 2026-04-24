@@ -147,7 +147,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                   <div className="p-6 overflow-auto max-h-[70vh]">
                     <div className="relative w-full overflow-hidden bg-muted">
                       <Image
-                        src="https://picsum.photos/seed/sizeguide/800/1200"
+                        src="https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/7aa45a80650fef81cf7ee8c21001c5ac8a9dbefa/size%20chart.png"
                         alt="Viloryi Size Guide"
                         width={800}
                         height={1200}

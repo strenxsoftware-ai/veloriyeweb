@@ -1,0 +1,800 @@
+{
+  "entities": {
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a single fashion product available for sale on the Viloryi e-commerce platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Product entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the product, including material and style notes."
+        },
+        "price": {
+          "type": "number",
+          "description": "The current selling price of the product."
+        },
+        "imageUrls": {
+          "type": "array",
+          "description": "An array of URLs for product images.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category the product belongs to. (Relationship: Category 1:N Product)"
+        },
+        "availableSizes": {
+          "type": "array",
+          "description": "An array of available sizes for the product (e.g., 'S', 'M', 'L').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stockQuantity": {
+          "type": "number",
+          "description": "The current quantity of this product in stock."
+        },
+        "sku": {
+          "type": "string",
+          "description": "Stock Keeping Unit, a unique identifier for product variations."
+        },
+        "isFeatured": {
+          "type": "boolean",
+          "description": "Indicates if the product is featured on the homepage."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the product was first added.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the product details.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "price",
+        "imageUrls",
+        "categoryId",
+        "availableSizes",
+        "stockQuantity"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a distinct classification for products, such as 'Kurti Sets' or 'Co-ord Sets'.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the category (e.g., 'Kurti Sets')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the category."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL for an image representing the category.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "CustomerReview": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CustomerReview",
+      "type": "object",
+      "description": "Represents a review submitted by a customer for a specific product.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CustomerReview entity."
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product being reviewed. (Relationship: Product 1:N CustomerReview)"
+        },
+        "reviewerName": {
+          "type": "string",
+          "description": "The name or alias of the customer who submitted the review."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The rating given by the customer (e.g., 1 to 5 stars)."
+        },
+        "comment": {
+          "type": "string",
+          "description": "The textual feedback or comment from the customer."
+        },
+        "reviewDate": {
+          "type": "string",
+          "description": "The date and time when the review was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "productId",
+        "reviewerName",
+        "rating",
+        "comment",
+        "reviewDate"
+      ]
+    },
+    "Cart": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Cart",
+      "type": "object",
+      "description": "Represents a temporary shopping cart for a user session, holding items prior to checkout. Designed for guest checkout primarily.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Cart entity (e.g., session ID)."
+        },
+        "cartItemIds": {
+          "type": "array",
+          "description": "References to CartItem entities associated with this cart. (Relationship: Cart 1:N CartItem)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the cart was first created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last modification to the cart.",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the guest cart is set to expire.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CartItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CartItem",
+      "type": "object",
+      "description": "Represents a single product item added to a shopping cart, specifying quantity and selected options.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CartItem entity."
+        },
+        "cartId": {
+          "type": "string",
+          "description": "Reference to the Cart this item belongs to. (Relationship: Cart 1:N CartItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product in the cart. (Relationship: Product 1:N CartItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the product in the cart."
+        },
+        "selectedSize": {
+          "type": "string",
+          "description": "The specific size selected for the product."
+        },
+        "priceAtAddition": {
+          "type": "number",
+          "description": "The price of the product at the time it was added to the cart."
+        }
+      },
+      "required": [
+        "id",
+        "cartId",
+        "productId",
+        "quantity",
+        "selectedSize",
+        "priceAtAddition"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a completed customer purchase, containing details of items, total cost, and delivery information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Order entity."
+        },
+        "orderItemIds": {
+          "type": "array",
+          "description": "References to OrderItem entities associated with this order. (Relationship: Order 1:N OrderItem)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total monetary amount of the order, including taxes and shipping."
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "The date and time the order was placed.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the order (e.g., 'Pending', 'Processing', 'Shipped', 'Delivered')."
+        },
+        "shippingAddressId": {
+          "type": "string",
+          "description": "Reference to the ShippingAddress for this order. (Relationship: ShippingAddress 1:N Order)"
+        },
+        "billingAddressId": {
+          "type": "string",
+          "description": "Reference to the BillingAddress for this order. (Relationship: BillingAddress 1:N Order)"
+        },
+        "guestEmail": {
+          "type": "string",
+          "description": "Email provided by the guest customer for order communication.",
+          "format": "email"
+        },
+        "guestPhoneNumber": {
+          "type": "string",
+          "description": "Phone number provided by the guest customer for order communication."
+        },
+        "paymentStatus": {
+          "type": "string",
+          "description": "The status of the payment for the order (e.g., 'Paid', 'Refunded', 'Failed')."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The payment method used (e.g., 'Credit Card', 'UPI', 'Net Banking')."
+        }
+      },
+      "required": [
+        "id",
+        "orderItemIds",
+        "totalAmount",
+        "orderDate",
+        "status",
+        "shippingAddressId",
+        "billingAddressId",
+        "guestEmail",
+        "paymentStatus",
+        "paymentMethod"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents a single product item within a completed order, capturing its state at the time of purchase.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the OrderItem entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product that was purchased. (Relationship: Product 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the product purchased."
+        },
+        "selectedSize": {
+          "type": "string",
+          "description": "The specific size of the product purchased."
+        },
+        "priceAtPurchase": {
+          "type": "number",
+          "description": "The price of the product at the time of purchase."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "productId",
+        "quantity",
+        "selectedSize",
+        "priceAtPurchase"
+      ]
+    },
+    "ShippingAddress": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ShippingAddress",
+      "type": "object",
+      "description": "Stores the delivery address details for an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ShippingAddress entity."
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "The full name of the person receiving the shipment."
+        },
+        "addressLine1": {
+          "type": "string",
+          "description": "The primary street address."
+        },
+        "addressLine2": {
+          "type": "string",
+          "description": "Optional secondary address details (e.g., apartment, suite, floor)."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city of the address."
+        },
+        "state": {
+          "type": "string",
+          "description": "The state or province of the address."
+        },
+        "zipCode": {
+          "type": "string",
+          "description": "The postal code of the address."
+        },
+        "country": {
+          "type": "string",
+          "description": "The country of the address."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Contact phone number for delivery."
+        }
+      },
+      "required": [
+        "id",
+        "recipientName",
+        "addressLine1",
+        "city",
+        "state",
+        "zipCode",
+        "country",
+        "phoneNumber"
+      ]
+    },
+    "BillingAddress": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BillingAddress",
+      "type": "object",
+      "description": "Stores the billing address details for an order, typically associated with the payment method.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BillingAddress entity."
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "The full name associated with the billing details."
+        },
+        "addressLine1": {
+          "type": "string",
+          "description": "The primary street address."
+        },
+        "addressLine2": {
+          "type": "string",
+          "description": "Optional secondary address details (e.g., apartment, suite, floor)."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city of the address."
+        },
+        "state": {
+          "type": "string",
+          "description": "The state or province of the address."
+        },
+        "zipCode": {
+          "type": "string",
+          "description": "The postal code of the address."
+        },
+        "country": {
+          "type": "string",
+          "description": "The country of the address."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Contact phone number for billing."
+        }
+      },
+      "required": [
+        "id",
+        "recipientName",
+        "addressLine1",
+        "city",
+        "state",
+        "zipCode",
+        "country",
+        "phoneNumber"
+      ]
+    },
+    "AISuggestion": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AISuggestion",
+      "type": "object",
+      "description": "Stores personalized clothing suggestions generated by the AI Style Curator tool for a user or session.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AISuggestion entity."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "A unique identifier for the user's session during which the suggestion was made. If the user is logged in, this could be a user ID instead."
+        },
+        "criteriaInput": {
+          "type": "string",
+          "description": "The user's input or preferences provided to the AI (e.g., 'party wear, elegant', 'minimalist style')."
+        },
+        "suggestedProductIds": {
+          "type": "array",
+          "description": "References to products suggested by the AI. (Relationship: Product N:N AISuggestion)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "suggestionDate": {
+          "type": "string",
+          "description": "The date and time when the AI suggestion was generated.",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes or reasoning from the AI for the suggestion."
+        }
+      },
+      "required": [
+        "id",
+        "sessionId",
+        "criteriaInput",
+        "suggestedProductIds",
+        "suggestionDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Publicly accessible catalog of fashion products. Read-only for all users (guests and authenticated). Admin users would have write access."
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Publicly accessible list of product categories. Read-only for all users. Admin users would have write access."
+        }
+      },
+      {
+        "path": "/customer_reviews/{reviewId}",
+        "definition": {
+          "entityName": "CustomerReview",
+          "schema": {
+            "$ref": "#/backend/entities/CustomerReview"
+          },
+          "description": "Publicly accessible customer reviews for products. Read-only for all users. Creation/updates would be restricted (e.g., authenticated users only, or admin moderated). This collection requires the 'productId' field for querying."
+        }
+      },
+      {
+        "path": "/users/{userId}/carts/{cartId}",
+        "definition": {
+          "entityName": "Cart",
+          "schema": {
+            "$ref": "#/backend/entities/Cart"
+          },
+          "description": "Stores the shopping cart for an authenticated user. Access is restricted to the 'userId' in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "cartId",
+              "description": "The unique identifier for the user's cart."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/carts/{cartId}/cart_items/{cartItemId}",
+        "definition": {
+          "entityName": "CartItem",
+          "schema": {
+            "$ref": "#/backend/entities/CartItem"
+          },
+          "description": "Items within an authenticated user's cart. Inherits authorization from the parent Cart path. The 'cartId' field within CartItem should match the parent 'cartId' path parameter for consistency and rule simplification (Authorization Independence).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "cartId",
+              "description": "The unique identifier for the user's cart."
+            },
+            {
+              "name": "cartItemId",
+              "description": "The unique identifier for the cart item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_carts/{sessionId}",
+        "definition": {
+          "entityName": "Cart",
+          "schema": {
+            "$ref": "#/backend/entities/Cart"
+          },
+          "description": "Stores temporary shopping carts for guest users. Access is restricted by the 'sessionId' (e.g., matching a cookie or local storage value). The 'id' field in the Cart document should match the 'sessionId' path parameter for Authorization Independence.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "A unique identifier for the guest user's session."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_carts/{sessionId}/cart_items/{cartItemId}",
+        "definition": {
+          "entityName": "CartItem",
+          "schema": {
+            "$ref": "#/backend/entities/CartItem"
+          },
+          "description": "Items within a guest user's cart. Inherits authorization from the parent guest_cart path. The 'cartId' field within CartItem should match the parent 'sessionId' path parameter (acting as 'cartId') for Authorization Independence.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "A unique identifier for the guest user's session."
+            },
+            {
+              "name": "cartItemId",
+              "description": "The unique identifier for the cart item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores completed orders for an authenticated user. Access is restricted to the 'userId' in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the user's order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}/order_items/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Items within an authenticated user's order. Inherits authorization from the parent Order path. The 'orderId' field within OrderItem should match the parent 'orderId' path parameter for consistency and rule simplification (Authorization Independence).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the user's order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "The unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}/shipping_address",
+        "definition": {
+          "entityName": "ShippingAddress",
+          "schema": {
+            "$ref": "#/backend/entities/ShippingAddress"
+          },
+          "description": "Shipping address associated with an authenticated user's order. Stored as a single document within a sub-collection to ensure tight coupling and authorization. The 'id' field of ShippingAddress should match the parent order's shippingAddressId field (implicitly handled by subcollection structure).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the user's order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}/billing_address",
+        "definition": {
+          "entityName": "BillingAddress",
+          "schema": {
+            "$ref": "#/backend/entities/BillingAddress"
+          },
+          "description": "Billing address associated with an authenticated user's order. Stored as a single document within a sub-collection to ensure tight coupling and authorization. The 'id' field of BillingAddress should match the parent order's billingAddressId field (implicitly handled by subcollection structure).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the user's order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores completed orders from guest users. Access is restricted by matching 'request.resource.data.guestEmail' or 'guestPhoneNumber' with client-provided data for retrieval. The 'orderId' is the primary key for lookup.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the guest order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_orders/{orderId}/order_items/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Items within a guest user's order. Inherits authorization from the parent guest_order path. The 'orderId' field within OrderItem should match the parent 'orderId' path parameter for consistency and rule simplification (Authorization Independence).",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the guest order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "The unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_orders/{orderId}/shipping_address",
+        "definition": {
+          "entityName": "ShippingAddress",
+          "schema": {
+            "$ref": "#/backend/entities/ShippingAddress"
+          },
+          "description": "Shipping address associated with a guest user's order. Stored as a single document within a sub-collection to ensure tight coupling and authorization. The 'id' field of ShippingAddress should match the parent order's shippingAddressId field (implicitly handled by subcollection structure).",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the guest order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_orders/{orderId}/billing_address",
+        "definition": {
+          "entityName": "BillingAddress",
+          "schema": {
+            "$ref": "#/backend/entities/BillingAddress"
+          },
+          "description": "Billing address associated with a guest user's order. Stored as a single document within a sub-collection to ensure tight coupling and authorization. The 'id' field of BillingAddress should match the parent order's billingAddressId field (implicitly handled by subcollection structure).",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the guest order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/ai_suggestions/{suggestionId}",
+        "definition": {
+          "entityName": "AISuggestion",
+          "schema": {
+            "$ref": "#/backend/entities/AISuggestion"
+          },
+          "description": "Personalized AI clothing suggestions for authenticated users. Access restricted to the 'userId' in the path. The 'sessionId' field in the document must match the 'userId' path parameter for Authorization Independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the authenticated user."
+            },
+            {
+              "name": "suggestionId",
+              "description": "The unique identifier for the AI suggestion."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/guest_ai_sessions/{sessionId}/suggestions/{suggestionId}",
+        "definition": {
+          "entityName": "AISuggestion",
+          "schema": {
+            "$ref": "#/backend/entities/AISuggestion"
+          },
+          "description": "Personalized AI clothing suggestions for guest users, linked to a specific session. Access restricted to the 'sessionId' in the path. The 'sessionId' field in the document must match the 'sessionId' path parameter for Authorization Independence.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "A unique identifier for the guest user's session."
+            },
+            {
+              "name": "suggestionId",
+              "description": "The unique identifier for the AI suggestion."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to be secure, scalable, and highly debuggable, strictly adhering to the mandated principles.The core strategy leverages **Structural Segregation** and **Authorization Independence via Denormalization** to simplify security rules and enable efficient queries.\n\n**Authorization Independence:**\n1.  **Path-Based Ownership:** For user-specific data (carts, orders, AI suggestions for authenticated users), we utilize path-based ownership, placing them under `/users/{userId}/...`. This automatically ties the data to the authenticated user's `uid` (`request.auth.uid`), making `get()` calls in security rules unnecessary for verifying ownership of these top-level user documents.\n2.  **Subcollection Denormalization:** For nested entities like `CartItem`, `OrderItem`, `ShippingAddress`, and `BillingAddress` which are conceptually owned by a `Cart` or `Order`, they are stored as subcollections. This ensures that their full path (`/users/{userId}/carts/{cartId}/cart_items/{cartItemId}` or `/guest_orders/{orderId}/shipping_address`) explicitly includes the parent's `id` (`userId`, `cartId`, `orderId`, `sessionId`). This makes the authorization context immediately available within the `path` variable of Firestore Security Rules, eliminating the need for `get()` calls to parent documents to verify access rights. For instance, to write to a `CartItem`, the rule can simply check if `request.auth.uid == userId` and `request.resource.data.cartId == cartId` (if `cartId` is also denormalized within the document, which is good practice for index-based lookups).\n3.  **Guest Checkout:** For guest-specific data (carts, orders, AI suggestions), dedicated top-level collections like `/guest_carts/{sessionId}` and `/guest_orders/{orderId}` are used. Authorization for these relies on matching client-provided `sessionId` for carts/AI suggestions, or `guestEmail`/`guestPhoneNumber` for orders, against fields denormalized within the respective documents. This avoids `get()` and keeps rules atomic.\n\n**Querying and Access Patterns (QAPs):**\n1.  **Public Read-Only Data:** `Products`, `Categories`, and `CustomerReviews` are placed in top-level collections (`/products`, `/categories`, `/customer_reviews`). These are designed for public read access, enabling any user (authenticated or guest) to list and view product information without filtering concerns. Write access to these collections would be restricted to administrative roles (not explicitly defined by schema but implied for content management).\n2.  **User-Specific Lists:** Authenticated users can list their own carts, orders, and AI suggestions by querying `/users/{request.auth.uid}/carts`, `/users/{request.auth.uid}/orders`, and `/users/{request.auth.uid}/ai_suggestions`. The path structure naturally filters results to the current user's data, ensuring QAPs are met without complex rule filtering.\n3.  **Guest-Specific Lists:** For guest carts and AI suggestions, the client manages a `sessionId`. The application can query `/guest_carts/{sessionId}` or `/guest_ai_sessions/{sessionId}/suggestions` to retrieve data specific to that session. For guest orders, the application can query `/guest_orders` using `guestEmail` or `guestPhoneNumber` as a `where` clause. While this technically involves a `where` clause, the security rule for `guest_orders` can enforce that only the guest can read their own order by comparing `request.resource.data.guestEmail` with the email provided by the client, making it secure and allowing list operations.\n\n**Structural Segregation:** Data is clearly separated based on its security posture (public vs. user-owned vs. guest-owned), and nested data logically flows from its parent, preventing mixed security concerns within a single collection and simplifying rule writing. For instance, a `Cart` for an authenticated user cannot accidentally be accessed by another user, nor can a guest cart be accessed by an authenticated user unless explicitly linked.\n\nOverall, this design minimizes complexity in security rules, supports atomic operations, and provides clear data ownership and access patterns, which are crucial for a scalable and maintainable e-commerce platform."
+  }
+}

@@ -1,11 +1,22 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Instagram, Facebook, Twitter, Mail, MapPin, Phone, MessageSquare } from "lucide-react";
+import Image from "next/image";
+import { Instagram, Facebook, Twitter, Mail, MapPin, MessageSquare, Maximize2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export const Footer = () => {
+  const [isSizeGuideZoomed, setIsSizeGuideZoomed] = useState(false);
+
   return (
     <footer className="bg-primary text-primary-foreground py-20">
       <div className="container mx-auto px-6">
@@ -37,7 +48,37 @@ export const Footer = () => {
             <ul className="space-y-4 text-sm font-light opacity-70">
               <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Shipping Policy</Link></li>
               <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Returns & Exchanges</Link></li>
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Size Guide</Link></li>
+              <li>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="hover:opacity-100 hover:text-accent transition-all text-left">Size Guide</button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl bg-background rounded-none border-none p-0 overflow-hidden">
+                    <DialogHeader className="p-6 border-b">
+                      <DialogTitle className="text-2xl font-headline tracking-widest uppercase text-primary">Size Guide</DialogTitle>
+                    </DialogHeader>
+                    <div className="p-6 overflow-auto max-h-[70vh]">
+                      <div className="relative w-full overflow-hidden bg-muted">
+                        <Image
+                          src="https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/7aa45a80650fef81cf7ee8c21001c5ac8a9dbefa/size%20chart.png"
+                          alt="Viloryi Size Guide"
+                          width={800}
+                          height={1200}
+                          className={cn(
+                            "w-full h-auto transition-transform duration-500 origin-top cursor-zoom-in",
+                            isSizeGuideZoomed ? "scale-150 cursor-zoom-out" : "scale-100"
+                          )}
+                          onClick={() => setIsSizeGuideZoomed(!isSizeGuideZoomed)}
+                        />
+                      </div>
+                      <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground text-[10px] tracking-widest uppercase font-bold">
+                        <Maximize2 className="w-3 h-3" />
+                        <span>Click image to {isSizeGuideZoomed ? 'zoom out' : 'zoom in'}</span>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </li>
             </ul>
           </div>
           

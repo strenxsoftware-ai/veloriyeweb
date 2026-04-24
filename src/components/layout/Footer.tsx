@@ -45,7 +45,7 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-xs tracking-[0.3em] font-bold uppercase">Customer Care</h4>
             <ul className="space-y-4 text-sm font-light opacity-70">
-              <li><Link href="#" className="hover:opacity-100 hover:text-accent transition-all">Shipping Policy</Link></li>
+              <li><Link href="/shipping-policy" className="hover:opacity-100 hover:text-accent transition-all">Shipping Policy</Link></li>
               <li><Link href="/returns-policy" className="hover:opacity-100 hover:text-accent transition-all">Returns & Exchanges</Link></li>
               <li>
                 <Dialog>

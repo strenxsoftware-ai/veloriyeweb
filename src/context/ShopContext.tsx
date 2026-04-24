@@ -1,23 +1,22 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, Timestamp } from "firebase/firestore";
 
 export type Product = {
   id: string;
   name: string;
   price: number;
-  category: string; // Display category name
-  categoryId: string; // Reference to category doc ID
+  category: string; // The ID of the category (e.g., 'kurti')
+  images: string[];
   description: string;
-  imageUrl: string;
-  additionalImages?: string[];
-  fabric?: string;
-  fit?: string;
-  details?: string[];
-  deliveryInfo?: string;
-  returnPolicy?: string;
+  materials: string;
+  details: string;
+  sizes: string[];
+  stock: number;
+  createdAt?: Timestamp | any;
   isFeatured?: boolean;
 };
 
@@ -28,8 +27,8 @@ type ShopContextType = {
   isLoading: boolean;
   cart: CartItem[];
   addToCart: (product: Product, selectedSize?: string) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: string, size?: string) => void;
+  updateQuantity: (productId: string, size: string, quantity: number) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
@@ -43,7 +42,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartOpen, setIsCartOpen] = useState(false);
   const db = useFirestore();
 
-  // Fetch products from Firestore
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, "products");
@@ -51,7 +49,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const { data: firestoreProducts, isLoading } = useCollection<Product>(productsQuery);
 
-  // Load cart from local storage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem("viloryi-cart");
     if (savedCart) {
@@ -63,7 +60,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Save cart to local storage on change
   useEffect(() => {
     localStorage.setItem("viloryi-cart", JSON.stringify(cart));
   }, [cart]);
@@ -83,14 +79,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== productId));
+  const removeFromCart = (productId: string, size?: string) => {
+    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === size)));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity < 1) return removeFromCart(productId);
+  const updateQuantity = (productId: string, size: string, quantity: number) => {
+    if (quantity < 1) return removeFromCart(productId, size);
     setCart((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity } : item))
+      prev.map((item) => (item.id === productId && item.selectedSize === size ? { ...item, quantity } : item))
     );
   };
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { SlidersHorizontal, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -25,16 +26,15 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-const SIZES = ["S", "M", "L", "XL"];
+const SIZES = ["XS", "S", "M", "L", "XL"];
 
 export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
   const { products } = useShop();
   const db = useFirestore();
   const [sortBy, setSortBy] = useState("newest");
-  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [priceRange, setPriceRange] = useState([0, 15000]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
-  // Fetch category details from Firestore
   const categoryRef = useMemoFirebase(() => {
     if (!db || !categorySlug) return null;
     return doc(db, "categories", categorySlug);
@@ -43,11 +43,18 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
   const { data: category, isLoading: isCategoryLoading } = useDoc(categoryRef);
 
   const filteredProducts = useMemo(() => {
-    // Filter by the categorySlug (which is the categoryId)
-    let result = products.filter(p => p.categoryId === categorySlug);
+    // Filter by the category ID field (now named 'category')
+    let result = products.filter(p => p.category === categorySlug);
 
     // Filter by Price
     result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+
+    // Filter by Size
+    if (selectedSizes.length > 0) {
+      result = result.filter(p => 
+        p.sizes?.some(size => selectedSizes.includes(size))
+      );
+    }
 
     // Sort
     result.sort((a, b) => {
@@ -57,7 +64,7 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
     });
 
     return result;
-  }, [products, categorySlug, sortBy, priceRange]);
+  }, [products, categorySlug, sortBy, priceRange, selectedSizes]);
 
   const toggleSize = (size: string) => {
     setSelectedSizes(prev => 
@@ -66,7 +73,7 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
   };
 
   const clearFilters = () => {
-    setPriceRange([0, 10000]);
+    setPriceRange([0, 15000]);
     setSelectedSizes([]);
   };
 
@@ -86,7 +93,7 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-8 border-muted">
           <div className="space-y-2">
             <span className="text-accent tracking-[0.3em] text-xs font-bold uppercase">Collections</span>
-            <h1 className="text-5xl font-headline tracking-tight">{category?.name || "Collection"}</h1>
+            <h1 className="text-5xl font-headline tracking-tight text-primary">{category?.name || "Collection"}</h1>
             {category?.description && (
               <p className="text-muted-foreground text-sm font-light italic max-w-xl">
                 {category.description}
@@ -106,7 +113,7 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
               </SheetTrigger>
               <SheetContent className="bg-background rounded-none">
                 <SheetHeader className="border-b pb-6 mb-8">
-                  <SheetTitle className="text-2xl font-headline tracking-widest">Filters</SheetTitle>
+                  <SheetTitle className="text-2xl font-headline tracking-widest uppercase text-primary">Filters</SheetTitle>
                 </SheetHeader>
                 
                 <div className="space-y-12">
@@ -117,8 +124,8 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
                       <span className="text-xs font-medium">₹{priceRange[0]} - ₹{priceRange[1]}</span>
                     </div>
                     <Slider
-                      defaultValue={[0, 10000]}
-                      max={10000}
+                      defaultValue={[0, 15000]}
+                      max={15000}
                       step={500}
                       value={priceRange}
                       onValueChange={setPriceRange}
@@ -179,7 +186,7 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
           </div>
         ) : (
           <div className="py-24 text-center space-y-4">
-            <h3 className="text-2xl font-headline italic">No pieces found in this collection yet.</h3>
+            <h3 className="text-2xl font-headline italic">No pieces found in this collection matching filters.</h3>
             <Button onClick={clearFilters} variant="link" className="tracking-widest text-xs uppercase font-bold opacity-60">
               RESET FILTERS
             </Button>

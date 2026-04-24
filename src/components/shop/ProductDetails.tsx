@@ -12,8 +12,7 @@ import {
   Check, 
   ChevronRight, 
   Maximize2,
-  Heart,
-  X
+  Heart
 } from "lucide-react";
 import { 
   Accordion, 
@@ -31,15 +30,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const SIZES = ["S", "M", "L", "XL"];
-
 export const ProductDetails = ({ productId }: { productId: string }) => {
   const { products, addToCart } = useShop();
   const { toast } = useToast();
   const product = products.find(p => p.id === productId);
   
   const [selectedSize, setSelectedSize] = useState<string>("");
-  const [activeImage, setActiveImage] = useState<string>(product?.imageUrl || "");
+  const [activeImage, setActiveImage] = useState<string>(product?.images?.[0] || "");
   const [isZoomed, setIsZoomed] = useState(false);
   const [isSizeGuideZoomed, setIsSizeGuideZoomed] = useState(false);
 
@@ -54,7 +51,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
     );
   }
 
-  const allImages = [product.imageUrl, ...(product.additionalImages || [])];
+  const allImages = product.images || [];
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -75,17 +72,19 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
         {/* Image Gallery */}
         <div className="lg:col-span-7 space-y-4">
           <div className="relative aspect-[3/4] bg-muted overflow-hidden group">
-            <Image
-              src={activeImage}
-              alt={product.name}
-              fill
-              className={cn(
-                "object-cover transition-transform duration-700",
-                isZoomed ? "scale-150 cursor-zoom-out" : "scale-100 cursor-zoom-in"
-              )}
-              onClick={() => setIsZoomed(!isZoomed)}
-              priority
-            />
+            {activeImage && (
+              <Image
+                src={activeImage}
+                alt={product.name}
+                fill
+                className={cn(
+                  "object-cover transition-transform duration-700",
+                  isZoomed ? "scale-150 cursor-zoom-out" : "scale-100 cursor-zoom-in"
+                )}
+                onClick={() => setIsZoomed(!isZoomed)}
+                priority
+              />
+            )}
             {!isZoomed && (
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button size="icon" variant="secondary" className="rounded-none bg-white/80 backdrop-blur-md">
@@ -120,7 +119,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
             <nav className="flex items-center gap-2 text-[10px] tracking-widest text-muted-foreground uppercase font-bold">
               <span>Home</span>
               <ChevronRight className="w-3 h-3" />
-              <span>{product.category}</span>
+              <span>Catalog</span>
             </nav>
             <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary tracking-tight">
               {product.name}
@@ -142,7 +141,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl bg-background rounded-none border-none p-0 overflow-hidden">
                   <DialogHeader className="p-6 border-b">
-                    <DialogTitle className="text-2xl font-headline tracking-widest uppercase">Size Guide</DialogTitle>
+                    <DialogTitle className="text-2xl font-headline tracking-widest uppercase text-primary">Size Guide</DialogTitle>
                   </DialogHeader>
                   <div className="p-6 overflow-auto max-h-[70vh]">
                     <div className="relative w-full overflow-hidden bg-muted">
@@ -168,7 +167,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              {SIZES.map((size) => (
+              {(product.sizes || ["S", "M", "L", "XL"]).map((size) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
@@ -189,17 +188,20 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
             <div className="flex gap-4">
               <Button 
                 onClick={handleAddToCart}
+                disabled={product.stock === 0}
                 className="flex-1 h-14 bg-primary text-white rounded-none tracking-[0.2em] font-bold text-sm hover:bg-foreground/90"
               >
-                ADD TO BAG
+                {product.stock === 0 ? "OUT OF STOCK" : "ADD TO BAG"}
               </Button>
               <Button variant="outline" className="w-14 h-14 rounded-none border-muted">
                 <Heart className="w-5 h-5" />
               </Button>
             </div>
-            <p className="text-[10px] text-center text-muted-foreground tracking-widest uppercase">
-              Free Express Shipping on Orders above ₹2,999
-            </p>
+            {product.stock > 0 && product.stock < 5 && (
+              <p className="text-[10px] text-center text-accent tracking-widest uppercase font-bold">
+                Only {product.stock} left in stock!
+              </p>
+            )}
           </div>
 
           <div className="space-y-6 border-t pt-8">
@@ -218,20 +220,16 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                 <AccordionContent>
                   <div className="space-y-4 pt-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-semibold">Fabric</span>
-                      <span className="text-muted-foreground">{product.fabric}</span>
+                      <span className="font-semibold">Fabric / Materials</span>
+                      <span className="text-muted-foreground">{product.materials || "Premium Blend"}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="font-semibold">Fit</span>
-                      <span className="text-muted-foreground">{product.fit}</span>
-                    </div>
-                    <ul className="space-y-2 mt-4">
-                      {product.details?.map((detail, idx) => (
-                        <li key={idx} className="flex gap-3 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-accent shrink-0" /> {detail}
-                        </li>
-                      ))}
-                    </ul>
+                    {product.details && (
+                      <div className="space-y-2 mt-4">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {product.details}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -245,14 +243,14 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                     <Truck className="w-5 h-5 text-accent shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">Fast Delivery</p>
-                      <p className="text-xs text-muted-foreground">{product.deliveryInfo}</p>
+                      <p className="text-xs text-muted-foreground">Standard shipping: 3-5 business days across major cities.</p>
                     </div>
                   </div>
                   <div className="flex gap-4">
                     <RotateCcw className="w-5 h-5 text-accent shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">Easy Returns</p>
-                      <p className="text-xs text-muted-foreground">{product.returnPolicy}</p>
+                      <p className="text-xs text-muted-foreground">Initiate a return within 7 days of delivery.</p>
                     </div>
                   </div>
                 </AccordionContent>
@@ -272,9 +270,10 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
         </div>
         <Button 
           onClick={handleAddToCart}
+          disabled={product.stock === 0}
           className="bg-primary text-white rounded-none px-8 tracking-widest text-xs font-bold"
         >
-          {selectedSize ? `ADD ${selectedSize}` : "SELECT SIZE"}
+          {product.stock === 0 ? "SOLD OUT" : (selectedSize ? `ADD ${selectedSize}` : "SELECT SIZE")}
         </Button>
       </div>
     </section>

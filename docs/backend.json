@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -7,18 +8,28 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
-        "description": { "type": "string" },
         "price": { "type": "number" },
-        "imageUrl": { "type": "string" },
-        "categoryId": { 
+        "category": { 
           "type": "string",
-          "description": "The ID of the category this product belongs to." 
+          "description": "The ID of the category this product belongs to (e.g., 'kurti')." 
         },
-        "fabric": { "type": "string" },
-        "fit": { "type": "string" },
+        "images": { 
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "description": "Array of image URLs for the product."
+        },
+        "description": { "type": "string" },
+        "materials": { "type": "string" },
+        "details": { "type": "string" },
+        "sizes": { 
+          "type": "array",
+          "items": { "type": "string", "enum": ["XS", "S", "M", "L", "XL"] } 
+        },
+        "stock": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
         "isFeatured": { "type": "boolean" }
       },
-      "required": ["id", "name", "price", "imageUrl", "categoryId"]
+      "required": ["id", "name", "price", "category", "images", "description"]
     },
     "Category": {
       "title": "Category",

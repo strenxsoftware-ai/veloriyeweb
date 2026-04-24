@@ -31,9 +31,6 @@ export const Hero = () => {
       <div className="container mx-auto px-6 relative z-10 pt-20">
         <div className="max-w-2xl space-y-8 animate-fade-in opacity-0">
           <div className="space-y-4">
-            <span className="text-accent font-bold tracking-[0.5em] text-xs uppercase block">
-              THE NEW COLLECTION
-            </span>
             <h1 className="text-6xl md:text-8xl font-headline font-bold text-foreground leading-[1.05] tracking-tight">
               Wear Your <br /> Elegance
             </h1>

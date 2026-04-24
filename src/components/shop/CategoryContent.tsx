@@ -2,7 +2,9 @@
 
 import React, { useState, useMemo } from "react";
 import { ProductCard } from "./ProductCard";
-import { useShop, type Product } from "@/context/ShopContext";
+import { useShop } from "@/context/ShopContext";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { 
   Select, 
   SelectContent, 
@@ -12,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -27,40 +29,35 @@ const SIZES = ["S", "M", "L", "XL"];
 
 export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
   const { products } = useShop();
+  const db = useFirestore();
   const [sortBy, setSortBy] = useState("newest");
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
-  // Format category name from slug
-  const categoryName = categorySlug
-    .split("-")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  // Fetch category details from Firestore
+  const categoryRef = useMemoFirebase(() => {
+    if (!db || !categorySlug) return null;
+    return doc(db, "categories", categorySlug);
+  }, [db, categorySlug]);
+
+  const { data: category, isLoading: isCategoryLoading } = useDoc(categoryRef);
 
   const filteredProducts = useMemo(() => {
-    let result = products.filter(p => 
-      p.category.toLowerCase() === categoryName.toLowerCase()
-    );
+    // Filter by the categorySlug (which is the categoryId)
+    let result = products.filter(p => p.categoryId === categorySlug);
 
     // Filter by Price
     result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
-
-    // Filter by Size (Note: in a real app, products would have available sizes in their schema)
-    // For now, we simulate this.
-    if (selectedSizes.length > 0) {
-      // In this MVP, all products technically have all sizes, but we'll simulate filtering
-      // by just keeping the list as is if sizes are checked, or adding more logic if needed.
-    }
 
     // Sort
     result.sort((a, b) => {
       if (sortBy === "price-low") return a.price - b.price;
       if (sortBy === "price-high") return b.price - a.price;
-      return 0; // Default newest (based on order in array for this MVP)
+      return 0;
     });
 
     return result;
-  }, [products, categoryName, sortBy, priceRange, selectedSizes]);
+  }, [products, categorySlug, sortBy, priceRange]);
 
   const toggleSize = (size: string) => {
     setSelectedSizes(prev => 
@@ -73,6 +70,14 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
     setSelectedSizes([]);
   };
 
+  if (isCategoryLoading) {
+    return (
+      <div className="container mx-auto px-6 py-24 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-6 py-12">
       <div className="flex flex-col gap-8">
@@ -81,8 +86,13 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-8 border-muted">
           <div className="space-y-2">
             <span className="text-accent tracking-[0.3em] text-xs font-bold uppercase">Collections</span>
-            <h1 className="text-5xl font-headline tracking-tight">{categoryName}</h1>
-            <p className="text-muted-foreground text-sm font-light italic">
+            <h1 className="text-5xl font-headline tracking-tight">{category?.name || "Collection"}</h1>
+            {category?.description && (
+              <p className="text-muted-foreground text-sm font-light italic max-w-xl">
+                {category.description}
+              </p>
+            )}
+            <p className="text-muted-foreground text-[10px] tracking-widest uppercase font-bold pt-2">
               Showing {filteredProducts.length} results
             </p>
           </div>
@@ -160,23 +170,6 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
           </div>
         </div>
 
-        {/* Active Filters Display */}
-        {(selectedSizes.length > 0 || priceRange[0] > 0 || priceRange[1] < 10000) && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-[10px] tracking-widest font-bold uppercase mr-2">Active Filters:</span>
-            {selectedSizes.map(size => (
-              <span key={size} className="bg-muted px-3 py-1 text-[10px] tracking-widest uppercase flex items-center gap-2">
-                Size: {size} <X className="w-3 h-3 cursor-pointer" onClick={() => toggleSize(size)} />
-              </span>
-            ))}
-            {(priceRange[0] > 0 || priceRange[1] < 10000) && (
-              <span className="bg-muted px-3 py-1 text-[10px] tracking-widest uppercase flex items-center gap-2">
-                ₹{priceRange[0]} - ₹{priceRange[1]} <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceRange([0, 10000])} />
-              </span>
-            )}
-          </div>
-        )}
-
         {/* Product Grid */}
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
@@ -186,7 +179,7 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
           </div>
         ) : (
           <div className="py-24 text-center space-y-4">
-            <h3 className="text-2xl font-headline italic">No pieces found matching your criteria.</h3>
+            <h3 className="text-2xl font-headline italic">No pieces found in this collection yet.</h3>
             <Button onClick={clearFilters} variant="link" className="tracking-widest text-xs uppercase font-bold opacity-60">
               RESET FILTERS
             </Button>

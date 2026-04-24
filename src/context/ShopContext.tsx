@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -9,7 +8,8 @@ export type Product = {
   id: string;
   name: string;
   price: number;
-  category: string;
+  category: string; // Display category name
+  categoryId: string; // Reference to category doc ID
   description: string;
   imageUrl: string;
   additionalImages?: string[];
@@ -18,6 +18,7 @@ export type Product = {
   details?: string[];
   deliveryInfo?: string;
   returnPolicy?: string;
+  isFeatured?: boolean;
 };
 
 type CartItem = Product & { quantity: number; selectedSize?: string };

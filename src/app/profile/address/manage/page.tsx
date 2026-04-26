@@ -1,10 +1,10 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, updateDoc, collection, addDoc, getDocs, where, query } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
@@ -24,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
-export default function ManageAddressPage() {
+function AddressForm() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
@@ -115,7 +115,7 @@ export default function ManageAddressPage() {
     const addressesRef = collection(db, "users", user.uid, "addresses");
 
     try {
-      // If setting as default, unset others first (optional for MVP, but good practice)
+      // If setting as default, unset others first
       if (formData.isDefault) {
         const q = query(addressesRef, where("isDefault", "==", true));
         const currentDefaults = await getDocs(q);
@@ -139,7 +139,7 @@ export default function ManageAddressPage() {
     }
   };
 
-  if (isUserLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+  if (isUserLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-accent" /></div>;
 
   return (
     <main className="min-h-screen bg-background">
@@ -260,5 +260,13 @@ export default function ManageAddressPage() {
 
       <Footer />
     </main>
+  );
+}
+
+export default function ManageAddressPage() {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin text-accent w-10 h-10" /></div>}>
+      <AddressForm />
+    </Suspense>
   );
 }

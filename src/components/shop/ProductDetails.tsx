@@ -271,6 +271,10 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
         if (!open) handleResetZoom();
       }}>
         <DialogContent className="max-w-[100vw] h-[100vh] p-0 bg-black/95 border-none rounded-none flex flex-col items-center justify-center overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{product.name} - Image Viewer</DialogTitle>
+          </DialogHeader>
+          
           <div className="absolute top-6 right-6 z-[60] flex items-center gap-4">
              <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-1 gap-1">
               <Button 

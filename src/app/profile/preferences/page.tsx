@@ -44,6 +44,9 @@ export default function PreferencesPage() {
     dob: "",
     topwearType: "",
     bottomwearType: "",
+    bottomwearOccasion: "",
+    bottomwearFit: "",
+    bottomwearSize: "",
     height: "",
     weight: "",
     shape: "",
@@ -81,8 +84,6 @@ export default function PreferencesPage() {
       displayName: formData.name,
       preferences: {
         ...formData,
-        // Ensure nesting for braSize if it was flat
-        braSize: formData.braSize
       }
     };
 
@@ -175,6 +176,9 @@ export default function PreferencesPage() {
           </CardHeader>
           <CardContent className="pt-6 space-y-3">
             <DetailItem label="Type" value={formData.bottomwearType || "Not set"} />
+            <DetailItem label="Occasion" value={formData.bottomwearOccasion || "Not set"} />
+            <DetailItem label="Fit" value={formData.bottomwearFit || "Not set"} />
+            <DetailItem label="Size" value={formData.bottomwearSize || "Not set"} />
           </CardContent>
         </Card>
 
@@ -270,16 +274,81 @@ export default function PreferencesPage() {
       case 'bottomwear':
         return (
           <div className="space-y-8 animate-fade-in">
-            <SectionHeader title="Edit Bottomwear Details" />
-            <div className="space-y-4">
-              <Label className="text-[10px] tracking-widest font-bold uppercase">Preferred Bottomwear Type</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {["Palazzos", "Trousers", "Leggings", "Skirts"].map(t => (
-                  <SelectableButton key={t} label={t} active={formData.bottomwearType === t} onClick={() => setFormData({...formData, bottomwearType: t})} />
-                ))}
-              </div>
+            <div className="flex justify-between items-center border-b pb-4 mb-6">
+              <SectionHeader title="Bottomwear Preferences" className="border-b-0 pb-0" />
+              <div className="text-[10px] font-bold text-accent tracking-widest">STEP {currentStep} / 4</div>
             </div>
-            <FormActions onCancel={() => setActiveSection(null)} onSave={handleSave} loading={loading} />
+            
+            <Progress value={(currentStep / 4) * 100} className="h-1 bg-muted rounded-none mb-8" />
+
+            {currentStep === 1 && (
+              <div className="space-y-6 animate-fade-in">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">What type of bottomwear do you prefer?</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {["Pants", "Palazzo", "Leggings", "Jeans"].map(t => (
+                    <SelectableButton key={t} label={t} active={formData.bottomwearType === t} onClick={() => setFormData({...formData, bottomwearType: t})} />
+                  ))}
+                </div>
+                <Button onClick={() => setCurrentStep(2)} className="w-full h-14 rounded-none tracking-widest uppercase text-xs">NEXT QUESTION</Button>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-6 animate-fade-in">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">For which occasion?</Label>
+                <div className="grid grid-cols-1 gap-3">
+                  {["Daily Wear", "Office Wear", "Casual Outing"].map(o => (
+                    <SelectableButton key={o} label={o} active={formData.bottomwearOccasion === o} onClick={() => setFormData({...formData, bottomwearOccasion: o})} />
+                  ))}
+                </div>
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1 h-14 rounded-none tracking-widest uppercase text-xs">BACK</Button>
+                  <Button onClick={() => setCurrentStep(3)} className="flex-[2] h-14 rounded-none tracking-widest uppercase text-xs">NEXT QUESTION</Button>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-6 animate-fade-in">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">What fit do you wear?</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {["Flared", "Loose Fit", "Regular Fit", "Skinny Fit", "Slim Fit", "Straight Fit", "Tapered Fit"].map(f => (
+                    <SelectableButton key={f} label={f} active={formData.bottomwearFit === f} onClick={() => setFormData({...formData, bottomwearFit: f})} />
+                  ))}
+                </div>
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={() => setCurrentStep(2)} className="flex-1 h-14 rounded-none tracking-widest uppercase text-xs">BACK</Button>
+                  <Button onClick={() => setCurrentStep(4)} className="flex-[2] h-14 rounded-none tracking-widest uppercase text-xs">NEXT QUESTION</Button>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="space-y-6 animate-fade-in">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">What is your bottomwear size?</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {["26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "40"].map(s => (
+                    <SelectableButton key={s} label={s} active={formData.bottomwearSize === s} onClick={() => setFormData({...formData, bottomwearSize: s})} />
+                  ))}
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <Button variant="outline" onClick={() => setCurrentStep(3)} className="flex-1 h-14 rounded-none tracking-widest uppercase text-xs">BACK</Button>
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={loading}
+                    className="flex-[2] h-14 bg-accent hover:bg-accent/90 rounded-none tracking-widest uppercase text-xs font-bold"
+                  >
+                    {loading ? "SAVING..." : "SAVE PREFERENCES"}
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {currentStep < 4 && (
+              <div className="pt-8 text-center">
+                <Button variant="link" onClick={() => setActiveSection(null)} className="text-[10px] tracking-widest font-bold uppercase opacity-60">Cancel and Go Back</Button>
+              </div>
+            )}
           </div>
         );
       case 'body':
@@ -302,11 +371,21 @@ export default function PreferencesPage() {
                 <div className="flex gap-4">
                   <div className="flex-1 space-y-2">
                     <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Band</span>
-                    <Input value={formData.braSize.band} onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, band: e.target.value}})} placeholder="32" className="rounded-none h-10" />
+                    <Input 
+                      value={formData.braSize.band} 
+                      onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, band: e.target.value}})} 
+                      placeholder="32" 
+                      className="rounded-none h-10" 
+                    />
                   </div>
                   <div className="flex-1 space-y-2">
                     <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Cup</span>
-                    <Input value={formData.braSize.cup} onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, cup: e.target.value}})} placeholder="B" className="rounded-none h-10" />
+                    <Input 
+                      value={formData.braSize.cup} 
+                      onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, cup: e.target.value}})} 
+                      placeholder="B" 
+                      className="rounded-none h-10" 
+                    />
                   </div>
                 </div>
               </div>
@@ -352,12 +431,12 @@ export default function PreferencesPage() {
 const DetailItem = ({ label, value, className }: { label: string; value: string; className?: string }) => (
   <div className="flex justify-between items-center text-xs">
     <span className="text-muted-foreground tracking-widest font-bold uppercase text-[9px]">{label}</span>
-    <span className={cn("font-medium text-primary", className)}>{value}</span>
+    <span className={cn("font-medium text-primary text-right", className)}>{value}</span>
   </div>
 );
 
-const SectionHeader = ({ title }: { title: string }) => (
-  <div className="space-y-2 border-b pb-4">
+const SectionHeader = ({ title, className }: { title: string; className?: string }) => (
+  <div className={cn("space-y-2 border-b pb-4", className)}>
     <h2 className="text-2xl font-headline font-bold text-primary">{title}</h2>
     <p className="text-muted-foreground text-[10px] tracking-widest uppercase font-bold opacity-60">Update your preferences below</p>
   </div>

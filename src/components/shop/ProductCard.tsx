@@ -50,11 +50,11 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
           </Button>
           <div className="flex gap-2">
             <Link href={`/product/${product.id}`} className="flex-1">
-              <Button variant="secondary" className="w-full rounded-none h-10 bg-white/80 backdrop-blur-sm hover:bg-white">
+              <Button variant="secondary" className="w-full rounded-none h-10 bg-primary text-primary-foreground hover:bg-primary/90 border-none">
                   <Eye className="w-4 h-4" />
               </Button>
             </Link>
-            <Button variant="secondary" className="flex-1 rounded-none h-10 bg-white/80 backdrop-blur-sm hover:bg-white">
+            <Button variant="secondary" className="flex-1 rounded-none h-10 bg-primary text-primary-foreground hover:bg-primary/90 border-none">
                 <Heart className="w-4 h-4" />
             </Button>
           </div>

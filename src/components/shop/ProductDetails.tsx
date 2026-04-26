@@ -193,7 +193,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
               >
                 {product.stock === 0 ? "OUT OF STOCK" : "ADD TO BAG"}
               </Button>
-              <Button variant="outline" className="w-14 h-14 rounded-none border-muted">
+              <Button className="w-14 h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 border-none transition-colors">
                 <Heart className="w-5 h-5" />
               </Button>
             </div>

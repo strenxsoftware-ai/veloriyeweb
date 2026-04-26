@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -33,6 +32,7 @@ export default function ProfilePage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    if (!auth) return;
     setIsLoggingOut(true);
     try {
       await signOut(auth);

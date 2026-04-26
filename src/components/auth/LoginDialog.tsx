@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -31,6 +30,7 @@ export const LoginDialog = ({
   const db = useFirestore();
 
   const handleLogin = async () => {
+    if (!auth || !db) return;
     try {
       await signInWithGoogle(auth, db);
       onOpenChange(false);

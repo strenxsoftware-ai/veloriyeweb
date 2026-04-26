@@ -34,16 +34,16 @@ export interface FirebaseContextState {
 
 // Return type for useFirebase()
 export interface FirebaseServicesAndUser {
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
+  firebaseApp: FirebaseApp | null;
+  firestore: Firestore | null;
+  auth: Auth | null;
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult {
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -113,17 +113,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
 /**
  * Hook to access core Firebase services and user authentication state.
- * Throws error if core services are not available or used outside provider.
+ * Returns null for services during SSR.
  */
 export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
 
   if (context === undefined) {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
-  }
-
-  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
-    throw new Error('Firebase core services not available. Check FirebaseProvider props.');
   }
 
   return {
@@ -136,22 +132,22 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   };
 };
 
-/** Hook to access Firebase Auth instance. */
-export const useAuth = (): Auth => {
-  const { auth } = useFirebase();
-  return auth;
+/** Hook to access Firebase Auth instance. Returns null during SSR. */
+export const useAuth = (): Auth | null => {
+  const context = useContext(FirebaseContext);
+  return context?.auth ?? null;
 };
 
-/** Hook to access Firestore instance. */
-export const useFirestore = (): Firestore => {
-  const { firestore } = useFirebase();
-  return firestore;
+/** Hook to access Firestore instance. Returns null during SSR. */
+export const useFirestore = (): Firestore | null => {
+  const context = useContext(FirebaseContext);
+  return context?.firestore ?? null;
 };
 
-/** Hook to access Firebase App instance. */
-export const useFirebaseApp = (): FirebaseApp => {
-  const { firebaseApp } = useFirebase();
-  return firebaseApp;
+/** Hook to access Firebase App instance. Returns null during SSR. */
+export const useFirebaseApp = (): FirebaseApp | null => {
+  const context = useContext(FirebaseContext);
+  return context?.firebaseApp ?? null;
 };
 
 type MemoFirebase <T> = T & {__memo?: boolean};
@@ -170,7 +166,14 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
-  const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
-  return { user, isUserLoading, userError };
+export const useUser = (): UserHookResult => {
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a FirebaseProvider.');
+  }
+  return { 
+    user: context.user, 
+    isUserLoading: context.isUserLoading, 
+    userError: context.userError 
+  };
 };

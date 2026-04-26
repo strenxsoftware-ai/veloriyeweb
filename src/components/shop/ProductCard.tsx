@@ -6,10 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useShop, type Product } from "@/context/ShopContext";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { Eye, Heart, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoginDialog } from "@/components/auth/LoginDialog";
+import { toast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
   product: Product;
@@ -19,7 +21,16 @@ interface ProductCardProps {
 export const ProductCard = ({ product, className }: ProductCardProps) => {
   const { addToCart } = useShop();
   const { user } = useUser();
+  const db = useFirestore();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+
+  const wishlistRef = useMemoFirebase(() => {
+    if (!db || !user?.uid || !product.id) return null;
+    return doc(db, "users", user.uid, "wishlist", product.id);
+  }, [db, user?.uid, product.id]);
+
+  const { data: wishlistItem } = useDoc(wishlistRef);
+  const isInWishlist = !!wishlistItem;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -42,7 +53,25 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
       setIsLoginOpen(true);
       return;
     }
-    // Wishlist logic would go here
+
+    if (!db || !wishlistRef) return;
+
+    if (isInWishlist) {
+      deleteDoc(wishlistRef).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: wishlistRef.path,
+          operation: 'delete'
+        }));
+      });
+    } else {
+      setDoc(wishlistRef, product).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: wishlistRef.path,
+          operation: 'create',
+          requestResourceData: product
+        }));
+      });
+    }
   };
 
   const mainImage = product.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
@@ -77,9 +106,12 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
               <Button 
                 onClick={handleWishlist}
                 variant="secondary" 
-                className="flex-1 rounded-none h-10 bg-primary text-primary-foreground hover:bg-primary/90 border-none"
+                className={cn(
+                  "flex-1 rounded-none h-10 transition-colors border-none",
+                  isInWishlist ? "bg-accent text-white" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}
               >
-                  <Heart className="w-4 h-4" />
+                  <Heart className={cn("w-4 h-4", isInWishlist && "fill-current")} />
               </Button>
             </div>
           </div>

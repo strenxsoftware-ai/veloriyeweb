@@ -32,12 +32,14 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 
 export const ProductDetails = ({ productId }: { productId: string }) => {
   const { products, addToCart } = useShop();
   const { user } = useUser();
+  const db = useFirestore();
   const { toast } = useToast();
   const product = products.find(p => p.id === productId);
   
@@ -47,6 +49,14 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [viewerZoom, setViewerZoom] = useState(1);
+
+  const wishlistRef = useMemoFirebase(() => {
+    if (!db || !user?.uid || !productId) return null;
+    return doc(db, "users", user.uid, "wishlist", productId);
+  }, [db, user?.uid, productId]);
+
+  const { data: wishlistItem } = useDoc(wishlistRef);
+  const isInWishlist = !!wishlistItem;
 
   if (!product) {
     return (
@@ -82,7 +92,25 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
       setIsLoginOpen(true);
       return;
     }
-    // Wishlist logic
+
+    if (!db || !wishlistRef) return;
+
+    if (isInWishlist) {
+      deleteDoc(wishlistRef).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: wishlistRef.path,
+          operation: 'delete'
+        }));
+      });
+    } else {
+      setDoc(wishlistRef, product).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: wishlistRef.path,
+          operation: 'create',
+          requestResourceData: product
+        }));
+      });
+    }
   };
 
   const handleZoomIn = () => setViewerZoom(prev => Math.min(prev + 0.5, 4));
@@ -164,7 +192,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                   <div className="p-6 overflow-auto max-h-[70vh]">
                     <div className="relative w-full overflow-hidden bg-muted">
                       <Image
-                        src="https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/7aa45a80650fef81cf7ee8c21001c5ac8a9dbefa/size%20chart.png"
+                        src="https://raw.githubusercontent.com/strenxsoftware-ai/viloryi-ecommerce/7aa45a80650fef81cf7ee8c21001c5ac8a9dbefa/size%20chart.png"
                         alt="Viloryi Size Guide"
                         width={800}
                         height={1200}
@@ -209,9 +237,12 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
               </Button>
               <Button 
                 onClick={handleWishlist}
-                className="w-14 h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 border-none transition-colors"
+                className={cn(
+                  "w-14 h-14 rounded-none border-none transition-colors",
+                  isInWishlist ? "bg-accent text-white" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}
               >
-                <Heart className="w-5 h-5" />
+                <Heart className={cn("w-5 h-5", isInWishlist && "fill-current")} />
               </Button>
             </div>
           </div>

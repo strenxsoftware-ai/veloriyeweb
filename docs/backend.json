@@ -78,6 +78,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/backend/entities/UserProfile" },
       "description": "Private user profiles and preferences."
+    },
+    "/users/{userId}/wishlist/{productId}": {
+      "schema": { "$ref": "#/backend/entities/Product" },
+      "description": "User's private wishlist of saved products."
     }
   }
 }

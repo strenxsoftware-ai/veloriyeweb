@@ -53,4 +53,4 @@ export async function loginWithMobile(auth: Auth, mobile: string, password: stri
   } catch (error) {
     throw error;
   }
-}
+} 

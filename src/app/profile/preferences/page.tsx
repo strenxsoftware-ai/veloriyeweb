@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -11,30 +12,38 @@ import {
   ChevronLeft, 
   CheckCircle2, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Pencil,
+  User as UserIcon,
+  Shirt,
+  ShoppingBag,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 'success';
+type EditSection = 'basic' | 'topwear' | 'bottomwear' | 'body' | 'success' | null;
 
 export default function PreferencesPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   
-  const [step, setStep] = useState<Step>(1);
+  const [activeSection, setActiveSection] = useState<EditSection>(null);
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   
   const [formData, setFormData] = useState({
     name: "",
     gender: "female",
     dob: "",
     topwearType: "",
+    bottomwearType: "",
     height: "",
     weight: "",
     shape: "",
@@ -64,15 +73,6 @@ export default function PreferencesPage() {
     }
   }, [userData, user]);
 
-  const nextStep = () => {
-    setStep((prev) => (prev === 'success' ? 'success' : (prev as number) + 1) as Step);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const prevStep = () => {
-    setStep((prev) => (prev === 'success' ? 'success' : (prev as number) - 1) as Step);
-  };
-
   const handleSave = () => {
     if (!userRef) return;
     setLoading(true);
@@ -80,32 +80,25 @@ export default function PreferencesPage() {
     const updateData = {
       displayName: formData.name,
       preferences: {
-        gender: formData.gender,
-        dob: formData.dob,
-        topwearType: formData.topwearType,
-        height: formData.height,
-        weight: formData.weight,
-        shape: formData.shape,
-        size: formData.size,
+        ...formData,
+        // Ensure nesting for braSize if it was flat
         braSize: formData.braSize
       }
     };
 
-    // Non-blocking update per guidelines
     updateDoc(userRef, updateData)
+      .then(() => {
+        setLoading(false);
+        setActiveSection('success');
+      })
       .catch(async (error) => {
+        setLoading(false);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: userRef.path,
           operation: 'update',
           requestResourceData: updateData
         }));
       });
-    
-    // Optimistic UI update
-    setTimeout(() => {
-      setStep('success');
-      setLoading(false);
-    }, 500);
   };
 
   if (isUserLoading) {
@@ -127,269 +120,198 @@ export default function PreferencesPage() {
     return null;
   }
 
-  const renderStep = () => {
-    switch (step) {
-      case 1:
+  const renderDashboard = () => (
+    <div className="space-y-12 animate-fade-in">
+      <div className="text-center space-y-4">
+        <span className="text-accent tracking-[0.4em] text-[10px] font-bold uppercase">Your Style Profile</span>
+        <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">Preferences</h1>
+        <p className="text-muted-foreground text-sm font-light italic">"Personalize your Viloryi experience for a perfect fit."</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Basic Details Section */}
+        <Card className="rounded-none border-muted shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+            <CardTitle className="text-xs tracking-widest font-bold uppercase flex items-center gap-2">
+              <UserIcon className="w-4 h-4 text-accent" /> Basic Details
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setActiveSection('basic'); setCurrentStep(1); }}>
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-3">
+            <DetailItem label="Name" value={formData.name} />
+            <DetailItem label="Gender" value={formData.gender} className="capitalize" />
+            <DetailItem label="Date of Birth" value={formData.dob || "Not set"} />
+          </CardContent>
+        </Card>
+
+        {/* Topwear Details Section */}
+        <Card className="rounded-none border-muted shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+            <CardTitle className="text-xs tracking-widest font-bold uppercase flex items-center gap-2">
+              <Shirt className="w-4 h-4 text-accent" /> Topwear
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setActiveSection('topwear'); setCurrentStep(1); }}>
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-3">
+            <DetailItem label="Type" value={formData.topwearType || "Not set"} />
+            <DetailItem label="Shape" value={formData.shape || "Not set"} />
+            <DetailItem label="Size" value={formData.size || "Not set"} />
+          </CardContent>
+        </Card>
+
+        {/* Bottomwear Details Section */}
+        <Card className="rounded-none border-muted shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+            <CardTitle className="text-xs tracking-widest font-bold uppercase flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-accent" /> Bottomwear
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setActiveSection('bottomwear'); setCurrentStep(1); }}>
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-3">
+            <DetailItem label="Type" value={formData.bottomwearType || "Not set"} />
+          </CardContent>
+        </Card>
+
+        {/* Body & Fit Section */}
+        <Card className="rounded-none border-muted shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+            <CardTitle className="text-xs tracking-widest font-bold uppercase flex items-center gap-2">
+              <Info className="w-4 h-4 text-accent" /> Body & Fit
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={() => { setActiveSection('body'); setCurrentStep(1); }}>
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-3">
+            <DetailItem label="Height" value={formData.height || "Not set"} />
+            <DetailItem label="Weight" value={formData.weight || "Not set"} />
+            {formData.braSize?.band && <DetailItem label="Bra Size" value={`${formData.braSize.band}${formData.braSize.cup}`} />}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-center pt-8">
+        <Button 
+          variant="outline" 
+          onClick={() => router.push("/profile")}
+          className="rounded-none tracking-widest uppercase font-bold text-[10px] px-12 py-6 border-muted hover:border-accent"
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" /> Back to Profile
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderEditForm = () => {
+    switch (activeSection) {
+      case 'basic':
         return (
           <div className="space-y-8 animate-fade-in">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-headline font-bold text-primary">Basic Details</h2>
-              <p className="text-muted-foreground text-sm">Let's start with the basics to personalize your profile.</p>
-            </div>
+            <SectionHeader title="Edit Basic Details" />
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] tracking-widest font-bold uppercase">Your Full Name</Label>
-                <Input 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="rounded-none h-12 border-muted"
-                  placeholder="E.g. Monika Sharma"
-                />
+                <Label className="text-[10px] tracking-widest font-bold uppercase">Full Name</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="rounded-none h-12" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] tracking-widest font-bold uppercase">Gender</Label>
-                <RadioGroup 
-                  value={formData.gender} 
-                  onValueChange={(v) => setFormData({...formData, gender: v})}
-                  className="flex gap-4"
-                >
-                  <Label className="flex-1 flex items-center justify-between p-4 border border-muted cursor-pointer hover:border-accent transition-all">
-                    <div className="flex items-center gap-3">
-                      <RadioGroupItem value="female" id="female" />
-                      <span className="text-sm font-medium">Female</span>
-                    </div>
-                  </Label>
-                  <Label className="flex-1 flex items-center justify-between p-4 border border-muted cursor-pointer hover:border-accent transition-all">
-                    <div className="flex items-center gap-3">
-                      <RadioGroupItem value="male" id="male" />
-                      <span className="text-sm font-medium">Male</span>
-                    </div>
-                  </Label>
+                <RadioGroup value={formData.gender} onValueChange={(v) => setFormData({...formData, gender: v})} className="flex gap-4">
+                  <GenderLabel value="female" label="Female" />
+                  <GenderLabel value="male" label="Male" />
                 </RadioGroup>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] tracking-widest font-bold uppercase">Date of Birth</Label>
-                <Input 
-                  type="date"
-                  value={formData.dob} 
-                  onChange={(e) => setFormData({...formData, dob: e.target.value})}
-                  className="rounded-none h-12 border-muted"
-                />
+                <Input type="date" value={formData.dob} onChange={(e) => setFormData({...formData, dob: e.target.value})} className="rounded-none h-12" />
               </div>
             </div>
-            <Button onClick={nextStep} className="w-full h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-              NEXT <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+            <FormActions onCancel={() => setActiveSection(null)} onSave={handleSave} loading={loading} />
           </div>
         );
-      case 2:
+      case 'topwear':
         return (
           <div className="space-y-8 animate-fade-in">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-headline font-bold text-primary">Style Preferences</h2>
-              <p className="text-muted-foreground text-sm">What type of topwear do you prefer wearing more often?</p>
-            </div>
-            <div className="space-y-4">
-              {["Kurtas", "Tops", "Dresses"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setFormData({...formData, topwearType: type})}
-                  className={cn(
-                    "w-full p-6 text-left border transition-all flex justify-between items-center group",
-                    formData.topwearType === type ? "border-accent bg-accent/5" : "border-muted hover:border-accent/40"
-                  )}
-                >
-                  <span className="font-headline text-lg">{type}</span>
-                  {formData.topwearType === type && <CheckCircle2 className="w-5 h-5 text-accent" />}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-                BACK
-              </Button>
-              <Button 
-                disabled={!formData.topwearType}
-                onClick={nextStep} 
-                className="flex-[2] h-14 rounded-none tracking-widest font-bold uppercase text-xs"
-              >
-                CONTINUE <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="space-y-8 animate-fade-in">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-headline font-bold text-primary">Body Details</h2>
-              <p className="text-muted-foreground text-sm">Providing accurate measurements helps us suggest the best fit.</p>
-            </div>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] tracking-widest font-bold uppercase">Height (cms or ft)</Label>
-                <Input 
-                  value={formData.height} 
-                  onChange={(e) => setFormData({...formData, height: e.target.value})}
-                  className="rounded-none h-12 border-muted"
-                  placeholder="e.g. 165 cms or 5'5\"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] tracking-widest font-bold uppercase">Weight (kgs)</Label>
-                <Input 
-                  value={formData.weight} 
-                  onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                  className="rounded-none h-12 border-muted"
-                  placeholder="e.g. 60 kgs"
-                />
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-                BACK
-              </Button>
-              <Button onClick={nextStep} className="flex-[2] h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-                CONTINUE <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        );
-      case 4:
-        return (
-          <div className="space-y-8 animate-fade-in">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-headline font-bold text-primary">Your Shape</h2>
-              <p className="text-muted-foreground text-sm">Which shape of topwear do you choose most often?</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {["A-Line", "Anarkali", "Pathani", "Straight"].map((shape) => (
-                <button
-                  key={shape}
-                  onClick={() => setFormData({...formData, shape: shape})}
-                  className={cn(
-                    "p-6 text-center border transition-all space-y-2 group",
-                    formData.shape === shape ? "border-accent bg-accent/5" : "border-muted hover:border-accent/40"
-                  )}
-                >
-                  <div className="w-full aspect-[3/4] bg-muted mb-4 group-hover:bg-muted/50 transition-colors" />
-                  <span className="font-bold tracking-widest uppercase text-[10px]">{shape}</span>
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-                BACK
-              </Button>
-              <Button 
-                disabled={!formData.shape}
-                onClick={nextStep} 
-                className="flex-[2] h-14 rounded-none tracking-widest font-bold uppercase text-xs"
-              >
-                CONTINUE <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        );
-      case 5:
-        return (
-          <div className="space-y-8 animate-fade-in">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-headline font-bold text-primary">Sizing</h2>
-              <p className="text-muted-foreground text-sm">What is your typical size for topwear?</p>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setFormData({...formData, size: size})}
-                  className={cn(
-                    "h-14 flex items-center justify-center border text-xs font-bold transition-all",
-                    formData.size === size 
-                      ? "border-primary bg-primary text-white" 
-                      : "border-muted hover:border-accent"
-                  )}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-4 pt-4">
-              <Button variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-                BACK
-              </Button>
-              <Button 
-                disabled={!formData.size}
-                onClick={nextStep} 
-                className="flex-[2] h-14 rounded-none tracking-widest font-bold uppercase text-xs"
-              >
-                CONTINUE <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        );
-      case 6:
-        return (
-          <div className="space-y-8 animate-fade-in">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-headline font-bold text-primary">Fit Details</h2>
-                <span className="text-[10px] bg-muted px-2 py-1 tracking-widest font-bold uppercase">Optional</span>
-              </div>
-              <p className="text-muted-foreground text-sm">What size of bra do you wear?</p>
-            </div>
+            <SectionHeader title="Edit Topwear Details" />
             <div className="space-y-8">
               <div className="space-y-4">
-                <Label className="text-[10px] tracking-widest font-bold uppercase">Band Size</Label>
+                <Label className="text-[10px] tracking-widest font-bold uppercase">Type Preference</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["28", "30", "32", "34", "36", "38", "40", "44"].map((band) => (
-                    <button
-                      key={band}
-                      onClick={() => setFormData({...formData, braSize: {...formData.braSize, band: band}})}
-                      className={cn(
-                        "w-10 h-10 flex items-center justify-center border text-xs font-bold transition-all",
-                        formData.braSize.band === band 
-                          ? "border-primary bg-primary text-white" 
-                          : "border-muted hover:border-accent"
-                      )}
-                    >
-                      {band}
-                    </button>
+                  {["Kurtas", "Tops", "Dresses"].map(t => (
+                    <SelectableButton key={t} label={t} active={formData.topwearType === t} onClick={() => setFormData({...formData, topwearType: t})} />
                   ))}
                 </div>
               </div>
               <div className="space-y-4">
-                <Label className="text-[10px] tracking-widest font-bold uppercase">Cup Size</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["A", "B", "C", "D", "E", "F"].map((cup) => (
-                    <button
-                      key={cup}
-                      onClick={() => setFormData({...formData, braSize: {...formData.braSize, cup: cup}})}
-                      className={cn(
-                        "w-10 h-10 flex items-center justify-center border text-xs font-bold transition-all",
-                        formData.braSize.cup === cup 
-                          ? "border-primary bg-primary text-white" 
-                          : "border-muted hover:border-accent"
-                      )}
-                    >
-                      {cup}
-                    </button>
+                <Label className="text-[10px] tracking-widest font-bold uppercase">Preferred Shape</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {["A-Line", "Anarkali", "Pathani", "Straight"].map(s => (
+                    <SelectableButton key={s} label={s} active={formData.shape === s} onClick={() => setFormData({...formData, shape: s})} />
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">Size</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["XS", "S", "M", "L", "XL", "XXL"].map(s => (
+                    <SelectableButton key={s} label={s} active={formData.size === s} onClick={() => setFormData({...formData, size: s})} />
                   ))}
                 </div>
               </div>
             </div>
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={prevStep} className="flex-1 h-14 rounded-none tracking-widest font-bold uppercase text-xs">
-                BACK
-              </Button>
-              <Button 
-                onClick={handleSave} 
-                disabled={loading}
-                className="flex-[2] h-14 rounded-none tracking-widest font-bold uppercase text-xs bg-accent hover:bg-accent/90"
-              >
-                {loading ? "SAVING..." : "SAVE PREFERENCES"} <Sparkles className="w-4 h-4 ml-2" />
-              </Button>
+            <FormActions onCancel={() => setActiveSection(null)} onSave={handleSave} loading={loading} />
+          </div>
+        );
+      case 'bottomwear':
+        return (
+          <div className="space-y-8 animate-fade-in">
+            <SectionHeader title="Edit Bottomwear Details" />
+            <div className="space-y-4">
+              <Label className="text-[10px] tracking-widest font-bold uppercase">Preferred Bottomwear Type</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {["Palazzos", "Trousers", "Leggings", "Skirts"].map(t => (
+                  <SelectableButton key={t} label={t} active={formData.bottomwearType === t} onClick={() => setFormData({...formData, bottomwearType: t})} />
+                ))}
+              </div>
             </div>
+            <FormActions onCancel={() => setActiveSection(null)} onSave={handleSave} loading={loading} />
+          </div>
+        );
+      case 'body':
+        return (
+          <div className="space-y-8 animate-fade-in">
+            <SectionHeader title="Edit Body & Fit Details" />
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] tracking-widest font-bold uppercase">Height</Label>
+                  <Input value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} placeholder="e.g. 5'5\" className="rounded-none h-12" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] tracking-widest font-bold uppercase">Weight</Label>
+                  <Input value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} placeholder="e.g. 60kg" className="rounded-none h-12" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">Bra Size (Optional)</Label>
+                <div className="flex gap-4">
+                  <div className="flex-1 space-y-2">
+                    <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Band</span>
+                    <Input value={formData.braSize.band} onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, band: e.target.value}})} placeholder="32" className="rounded-none h-10" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Cup</span>
+                    <Input value={formData.braSize.cup} onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, cup: e.target.value}})} placeholder="B" className="rounded-none h-10" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <FormActions onCancel={() => setActiveSection(null)} onSave={handleSave} loading={loading} />
           </div>
         );
       case 'success':
@@ -399,47 +321,80 @@ export default function PreferencesPage() {
               <CheckCircle2 className="w-12 h-12" />
             </div>
             <div className="space-y-4">
-              <h2 className="text-4xl font-headline font-bold text-primary">All Set!</h2>
+              <h2 className="text-4xl font-headline font-bold text-primary">Preferences Updated</h2>
               <p className="text-muted-foreground font-light text-lg italic max-w-sm">
-                "Your style profile has been updated. We'll use this to curate the perfect Viloryi collection just for you."
+                "Your style profile has been seamlessly synchronized. We're ready to curate your next favorite look."
               </p>
             </div>
-            <Button 
-              onClick={() => router.push("/profile")}
-              className="mt-8 px-12 h-14 rounded-none tracking-[0.3em] font-bold uppercase text-xs"
-            >
-              GO TO MY PROFILE <ArrowRight className="w-4 h-4 ml-2" />
+            <Button onClick={() => setActiveSection(null)} className="mt-8 px-12 h-14 rounded-none tracking-[0.3em] font-bold uppercase text-xs">
+              GO BACK TO PREFERENCES <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         );
     }
   };
 
-  const progress = typeof step === 'number' ? (step / 6) * 100 : 100;
-
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
-      
       <section className="pt-32 pb-24 px-6">
-        <div className="container mx-auto max-w-lg">
-          {step !== 'success' && (
-            <div className="mb-12 space-y-4">
-              <div className="flex justify-between items-center text-[10px] tracking-widest font-bold uppercase opacity-60">
-                <span>Personalizing Your Experience</span>
-                <span>Step {step} of 6</span>
-              </div>
-              <Progress value={progress} className="h-1 rounded-none bg-muted" />
-            </div>
-          )}
-
-          <div className="bg-white p-8 md:p-12 shadow-sm border border-muted min-h-[500px] flex flex-col justify-center">
-            {renderStep()}
+        <div className="container mx-auto max-w-2xl">
+          <div className="bg-white p-8 md:p-12 shadow-sm border border-muted min-h-[500px]">
+            {activeSection ? renderEditForm() : renderDashboard()}
           </div>
         </div>
       </section>
-
       <Footer />
     </main>
   );
 }
+
+const DetailItem = ({ label, value, className }: { label: string; value: string; className?: string }) => (
+  <div className="flex justify-between items-center text-xs">
+    <span className="text-muted-foreground tracking-widest font-bold uppercase text-[9px]">{label}</span>
+    <span className={cn("font-medium text-primary", className)}>{value}</span>
+  </div>
+);
+
+const SectionHeader = ({ title }: { title: string }) => (
+  <div className="space-y-2 border-b pb-4">
+    <h2 className="text-2xl font-headline font-bold text-primary">{title}</h2>
+    <p className="text-muted-foreground text-[10px] tracking-widest uppercase font-bold opacity-60">Update your preferences below</p>
+  </div>
+);
+
+const SelectableButton = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex-1 min-w-[80px] h-12 flex items-center justify-center border text-[10px] tracking-widest font-bold uppercase transition-all",
+      active ? "border-primary bg-primary text-white" : "border-muted hover:border-accent text-muted-foreground"
+    )}
+  >
+    {label}
+  </button>
+);
+
+const GenderLabel = ({ value, label }: { value: string; label: string }) => (
+  <Label className="flex-1 flex items-center justify-between p-4 border border-muted cursor-pointer hover:border-accent transition-all">
+    <div className="flex items-center gap-3">
+      <RadioGroupItem value={value} id={value} />
+      <span className="text-[10px] tracking-widest font-bold uppercase">{label}</span>
+    </div>
+  </Label>
+);
+
+const FormActions = ({ onCancel, onSave, loading }: { onCancel: () => void; onSave: () => void; loading: boolean }) => (
+  <div className="flex gap-4 pt-8">
+    <Button variant="outline" onClick={onCancel} className="flex-1 h-14 rounded-none tracking-widest font-bold uppercase text-xs">
+      CANCEL
+    </Button>
+    <Button 
+      onClick={onSave} 
+      disabled={loading}
+      className="flex-[2] h-14 rounded-none tracking-widest font-bold uppercase text-xs bg-accent hover:bg-accent/90"
+    >
+      {loading ? "SAVING..." : "SAVE CHANGES"} <Sparkles className="w-4 h-4 ml-2" />
+    </Button>
+  </div>
+);

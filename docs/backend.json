@@ -47,6 +47,7 @@
             "gender": { "type": "string", "enum": ["male", "female"] },
             "dob": { "type": "string", "format": "date" },
             "topwearType": { "type": "string", "enum": ["Kurtas", "Tops", "Dresses"] },
+            "bottomwearType": { "type": "string", "enum": ["Palazzos", "Trousers", "Leggings", "Skirts"] },
             "height": { "type": "string" },
             "weight": { "type": "string" },
             "shape": { "type": "string", "enum": ["A-Line", "Anarkali", "Pathani", "Straight"] },

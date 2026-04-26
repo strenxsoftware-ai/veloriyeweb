@@ -11,42 +11,41 @@
         "price": { "type": "number", "description": "Price in local currency (INR)." },
         "category": { 
           "type": "string",
-          "description": "The ID of the category this product belongs to (must match a Category document ID)." 
+          "description": "The ID of the category this product belongs to." 
         },
         "images": { 
           "type": "array",
           "items": { "type": "string", "format": "uri" },
-          "description": "Array of image URLs for the product gallery."
+          "description": "Array of image URLs."
         },
         "description": { "type": "string", "description": "Marketing description." },
-        "materials": { "type": "string", "description": "Fabric and material composition." },
-        "details": { "type": "string", "description": "Styling and fit details." },
+        "materials": { "type": "string", "description": "Fabric composition." },
+        "details": { "type": "string", "description": "Styling details." },
         "sizes": { 
           "type": "array",
           "items": { "type": "string", "enum": ["XS", "S", "M", "L", "XL"] },
-          "description": "Available sizes for the product."
+          "description": "Available sizes."
         },
-        "stock": { "type": "number", "description": "Current inventory count." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was added." },
-        "isFeatured": { "type": "boolean", "description": "Flag to show in homepage featured section." }
+        "stock": { "type": "number", "description": "Inventory count." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isFeatured": { "type": "boolean" }
       },
       "required": ["id", "name", "price", "category", "images", "description"]
     },
-    "Category": {
-      "title": "Category",
+    "UserProfile": {
+      "title": "User Profile",
       "type": "object",
-      "description": "A classification for products (e.g., Kurti Sets).",
       "properties": {
-        "id": { "type": "string", "description": "Document ID used for linking (e.g., 'kurti-sets')." },
-        "name": { "type": "string", "description": "Display name (e.g., 'Kurti Sets')." },
-        "description": { "type": "string", "description": "Short category description." },
-        "imageUrl": { "type": "string", "format": "uri", "description": "Thumbnail for category navigation." }
-      },
-      "required": ["id", "name"]
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
-    "providers": ["password", "anonymous"]
+    "providers": ["google.com"]
   },
   "firestore": {
     "structure": [
@@ -59,11 +58,11 @@
         }
       },
       {
-        "path": "/categories/{categoryId}",
+        "path": "/users/{userId}",
         "definition": {
-          "entityName": "Category",
-          "schema": { "$ref": "#/backend/entities/Category" },
-          "description": "Product categories."
+          "entityName": "UserProfile",
+          "schema": { "$ref": "#/backend/entities/UserProfile" },
+          "description": "Private user profiles."
         }
       }
     ]

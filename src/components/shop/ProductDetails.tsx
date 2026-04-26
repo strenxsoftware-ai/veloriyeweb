@@ -9,7 +9,6 @@ import {
   ShoppingBag, 
   Truck, 
   RotateCcw, 
-  Check, 
   ChevronRight, 
   Maximize2,
   Heart,
@@ -33,9 +32,12 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/firebase";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 
 export const ProductDetails = ({ productId }: { productId: string }) => {
   const { products, addToCart } = useShop();
+  const { user } = useUser();
   const { toast } = useToast();
   const product = products.find(p => p.id === productId);
   
@@ -43,6 +45,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
   const [activeImage, setActiveImage] = useState<string>(product?.images?.[0] || "");
   const [isSizeGuideZoomed, setIsSizeGuideZoomed] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [viewerZoom, setViewerZoom] = useState(1);
 
   if (!product) {
@@ -59,6 +62,10 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
   const allImages = product.images || [];
 
   const handleAddToCart = () => {
+    if (!user) {
+      setIsLoginOpen(true);
+      return;
+    }
     if (!selectedSize) {
       toast({
         title: "Please select a size",
@@ -68,6 +75,14 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
       return;
     }
     addToCart(product, selectedSize);
+  };
+
+  const handleWishlist = () => {
+    if (!user) {
+      setIsLoginOpen(true);
+      return;
+    }
+    // Wishlist logic
   };
 
   const handleZoomIn = () => setViewerZoom(prev => Math.min(prev + 0.5, 4));
@@ -104,9 +119,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
             {allImages.map((img, idx) => (
               <button
                 key={idx}
-                onClick={() => {
-                  setActiveImage(img);
-                }}
+                onClick={() => setActiveImage(img)}
                 className={cn(
                   "relative w-20 aspect-[3/4] flex-shrink-0 bg-muted overflow-hidden transition-all duration-300",
                   activeImage === img ? "ring-2 ring-accent" : "opacity-60 hover:opacity-100"
@@ -162,10 +175,6 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                         onClick={() => setIsSizeGuideZoomed(!isSizeGuideZoomed)}
                       />
                     </div>
-                    <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground text-[10px] tracking-widest uppercase font-bold">
-                      <Maximize2 className="w-3 h-3" />
-                      <span>Click image to {isSizeGuideZoomed ? 'zoom out' : 'zoom in'}</span>
-                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -198,25 +207,16 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
               >
                 {product.stock === 0 ? "OUT OF STOCK" : "ADD TO BAG"}
               </Button>
-              <Button className="w-14 h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 border-none transition-colors">
+              <Button 
+                onClick={handleWishlist}
+                className="w-14 h-14 rounded-none bg-primary text-primary-foreground hover:bg-primary/90 border-none transition-colors"
+              >
                 <Heart className="w-5 h-5" />
               </Button>
             </div>
-            {product.stock > 0 && product.stock < 5 && (
-              <p className="text-[10px] text-center text-accent tracking-widest uppercase font-bold">
-                Only {product.stock} left in stock!
-              </p>
-            )}
           </div>
 
           <div className="space-y-6 border-t pt-8">
-            <div className="space-y-4">
-              <h3 className="text-xs tracking-widest font-bold uppercase">Product Description</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed font-light italic">
-                "{product.description}"
-              </p>
-            </div>
-
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="details" className="border-b-muted">
                 <AccordionTrigger className="text-xs tracking-widest font-bold uppercase hover:no-underline">
@@ -228,35 +228,6 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                       <span className="font-semibold">Fabric / Materials</span>
                       <span className="text-muted-foreground">{product.materials || "Premium Blend"}</span>
                     </div>
-                    {product.details && (
-                      <div className="space-y-2 mt-4">
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {product.details}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="shipping" className="border-b-muted">
-                <AccordionTrigger className="text-xs tracking-widest font-bold uppercase hover:no-underline">
-                  Shipping & Returns
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4 pt-2">
-                  <div className="flex gap-4">
-                    <Truck className="w-5 h-5 text-accent shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold">Fast Delivery</p>
-                      <p className="text-xs text-muted-foreground">Standard shipping: 3-5 business days across major cities.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <RotateCcw className="w-5 h-5 text-accent shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold">Easy Returns</p>
-                      <p className="text-xs text-muted-foreground">Initiate a return within 7 days of delivery.</p>
-                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -265,7 +236,6 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
         </div>
       </div>
 
-      {/* Manual Zoom Image Viewer Dialog */}
       <Dialog open={isViewerOpen} onOpenChange={(open) => {
         setIsViewerOpen(open);
         if (!open) handleResetZoom();
@@ -277,46 +247,14 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
           
           <div className="absolute top-6 right-6 z-[60] flex items-center gap-4">
              <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-1 gap-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/20 h-10 w-10 rounded-full"
-                onClick={handleZoomOut}
-                disabled={viewerZoom <= 1}
-              >
-                <ZoomOut className="w-5 h-5" />
-              </Button>
-              <div className="w-[1px] h-4 bg-white/20" />
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/20 h-10 w-10 rounded-full"
-                onClick={handleZoomIn}
-                disabled={viewerZoom >= 4}
-              >
-                <ZoomIn className="w-5 h-5" />
-              </Button>
-              <div className="w-[1px] h-4 bg-white/20" />
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/20 h-10 w-10 rounded-full"
-                onClick={handleResetZoom}
-              >
-                <RotateCw className="w-4 h-4" />
-              </Button>
+              <Button variant="ghost" size="icon" className="text-white" onClick={handleZoomOut} disabled={viewerZoom <= 1}><ZoomOut className="w-5 h-5" /></Button>
+              <Button variant="ghost" size="icon" className="text-white" onClick={handleZoomIn} disabled={viewerZoom >= 4}><ZoomIn className="w-5 h-5" /></Button>
+              <Button variant="ghost" size="icon" className="text-white" onClick={handleResetZoom}><RotateCw className="w-4 h-4" /></Button>
             </div>
-            <Button 
-              variant="secondary" 
-              size="icon" 
-              className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90"
-              onClick={() => setIsViewerOpen(false)}
-            >
-              <X className="w-6 h-6" />
-            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12 bg-white text-black" onClick={() => setIsViewerOpen(false)}><X className="w-6 h-6" /></Button>
           </div>
 
-          <div className="w-full h-full overflow-auto flex items-center justify-center p-4 custom-scrollbar">
+          <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
             <div 
               className="relative transition-transform duration-300 ease-out"
               style={{ 
@@ -327,37 +265,19 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                 aspectRatio: '3/4'
               }}
             >
-              {activeImage && (
-                <Image
-                  src={activeImage}
-                  alt={product.name}
-                  fill
-                  className="object-contain"
-                  quality={100}
-                />
-              )}
+              {activeImage && <Image src={activeImage} alt={product.name} fill className="object-contain" quality={100} />}
             </div>
-          </div>
-
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white/60 text-[10px] tracking-widest uppercase font-bold">
-            Zoom Level: {viewerZoom.toFixed(1)}x
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Sticky Mobile Add to Cart */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md p-4 border-t flex gap-4 animate-in fade-in slide-in-from-bottom-5">
+      <LoginDialog isOpen={isLoginOpen} onOpenChange={setIsLoginOpen} />
+
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md p-4 border-t flex gap-4">
         <div className="flex-1 flex flex-col justify-center">
-          <p className="text-[10px] tracking-widest font-bold text-muted-foreground uppercase truncate">
-            {product.name}
-          </p>
           <p className="font-bold text-sm">₹{product.price.toLocaleString()}</p>
         </div>
-        <Button 
-          onClick={handleAddToCart}
-          disabled={product.stock === 0}
-          className="bg-primary text-white rounded-none px-8 tracking-widest text-xs font-bold"
-        >
+        <Button onClick={handleAddToCart} disabled={product.stock === 0} className="bg-primary text-white rounded-none px-8 tracking-widest text-xs font-bold">
           {product.stock === 0 ? "SOLD OUT" : (selectedSize ? `ADD ${selectedSize}` : "SELECT SIZE")}
         </Button>
       </div>

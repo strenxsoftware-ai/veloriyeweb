@@ -12,7 +12,11 @@ import {
   Check, 
   ChevronRight, 
   Maximize2,
-  Heart
+  Heart,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  X
 } from "lucide-react";
 import { 
   Accordion, 
@@ -37,8 +41,9 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
   
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [activeImage, setActiveImage] = useState<string>(product?.images?.[0] || "");
-  const [isZoomed, setIsZoomed] = useState(false);
   const [isSizeGuideZoomed, setIsSizeGuideZoomed] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerZoom, setViewerZoom] = useState(1);
 
   if (!product) {
     return (
@@ -65,33 +70,34 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
     addToCart(product, selectedSize);
   };
 
+  const handleZoomIn = () => setViewerZoom(prev => Math.min(prev + 0.5, 4));
+  const handleZoomOut = () => setViewerZoom(prev => Math.max(prev - 0.5, 1));
+  const handleResetZoom = () => setViewerZoom(1);
+
   return (
     <section className="container mx-auto px-6 pb-24">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-24">
         
         {/* Image Gallery */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="relative aspect-[3/4] bg-muted overflow-hidden group">
+          <div 
+            className="relative aspect-[3/4] bg-muted overflow-hidden group cursor-zoom-in"
+            onClick={() => setIsViewerOpen(true)}
+          >
             {activeImage && (
               <Image
                 src={activeImage}
                 alt={product.name}
                 fill
-                className={cn(
-                  "object-cover transition-transform duration-700",
-                  isZoomed ? "scale-150 cursor-zoom-out" : "scale-100 cursor-zoom-in"
-                )}
-                onClick={() => setIsZoomed(!isZoomed)}
+                className="object-cover"
                 priority
               />
             )}
-            {!isZoomed && (
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="icon" variant="secondary" className="rounded-none bg-white/80 backdrop-blur-md">
-                  <Maximize2 className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
+            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button size="icon" variant="secondary" className="rounded-none bg-white/80 backdrop-blur-md">
+                <Maximize2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           
           <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
@@ -100,7 +106,6 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                 key={idx}
                 onClick={() => {
                   setActiveImage(img);
-                  setIsZoomed(false);
                 }}
                 className={cn(
                   "relative w-20 aspect-[3/4] flex-shrink-0 bg-muted overflow-hidden transition-all duration-300",
@@ -167,7 +172,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              {(product.sizes || ["S", "M", "L", "XL"]).map((size) => (
+              {(product.sizes || ["XS", "S", "M", "L", "XL"]).map((size) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
@@ -259,6 +264,82 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
           </div>
         </div>
       </div>
+
+      {/* Manual Zoom Image Viewer Dialog */}
+      <Dialog open={isViewerOpen} onOpenChange={(open) => {
+        setIsViewerOpen(open);
+        if (!open) handleResetZoom();
+      }}>
+        <DialogContent className="max-w-[100vw] h-[100vh] p-0 bg-black/95 border-none rounded-none flex flex-col items-center justify-center overflow-hidden">
+          <div className="absolute top-6 right-6 z-[60] flex items-center gap-4">
+             <div className="flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-1 gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/20 h-10 w-10 rounded-full"
+                onClick={handleZoomOut}
+                disabled={viewerZoom <= 1}
+              >
+                <ZoomOut className="w-5 h-5" />
+              </Button>
+              <div className="w-[1px] h-4 bg-white/20" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/20 h-10 w-10 rounded-full"
+                onClick={handleZoomIn}
+                disabled={viewerZoom >= 4}
+              >
+                <ZoomIn className="w-5 h-5" />
+              </Button>
+              <div className="w-[1px] h-4 bg-white/20" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/20 h-10 w-10 rounded-full"
+                onClick={handleResetZoom}
+              >
+                <RotateCw className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full h-12 w-12 bg-white text-black hover:bg-white/90"
+              onClick={() => setIsViewerOpen(false)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+
+          <div className="w-full h-full overflow-auto flex items-center justify-center p-4 custom-scrollbar">
+            <div 
+              className="relative transition-transform duration-300 ease-out"
+              style={{ 
+                transform: `scale(${viewerZoom})`,
+                minWidth: '300px',
+                width: viewerZoom > 1 ? `${80 * viewerZoom}vh` : 'auto',
+                height: viewerZoom > 1 ? `${100 * viewerZoom}vh` : '90vh',
+                aspectRatio: '3/4'
+              }}
+            >
+              {activeImage && (
+                <Image
+                  src={activeImage}
+                  alt={product.name}
+                  fill
+                  className="object-contain"
+                  quality={100}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white/60 text-[10px] tracking-widest uppercase font-bold">
+            Zoom Level: {viewerZoom.toFixed(1)}x
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Sticky Mobile Add to Cart */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md p-4 border-t flex gap-4 animate-in fade-in slide-in-from-bottom-5">

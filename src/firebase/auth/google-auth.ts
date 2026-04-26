@@ -1,39 +1,56 @@
+
 'use client';
 
-import { GoogleAuthProvider, signInWithPopup, Auth } from 'firebase/auth';
+import { 
+  Auth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  updateProfile 
+} from 'firebase/auth';
 import { doc, setDoc, Firestore, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
-export async function signInWithGoogle(auth: Auth, db: Firestore) {
-  const provider = new GoogleAuthProvider();
+/**
+ * Maps a mobile number to a pseudo-email for Firebase Auth.
+ * Format: [number]@viloryi.app
+ */
+const getPseudoEmail = (mobile: string) => `${mobile}@viloryi.app`;
+
+export async function signUpWithMobile(auth: Auth, db: Firestore, mobile: string, password: string, name: string) {
+  const email = getPseudoEmail(mobile);
+  
   try {
-    const result = await signInWithPopup(auth, provider);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
+
+    // Set display name in Auth
+    await updateProfile(user, { displayName: name });
 
     // Sync user data to Firestore
     const userRef = doc(db, 'users', user.uid);
     const userData = {
       uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
+      mobile: mobile,
+      displayName: name,
       lastLogin: serverTimestamp(),
+      createdAt: serverTimestamp(),
     };
 
-    // Non-blocking sync per guidelines
-    setDoc(userRef, userData, { merge: true })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: userRef.path,
-          operation: 'write',
-          requestResourceData: userData
-        }));
-      });
-
+    await setDoc(userRef, userData, { merge: true });
+    
     return user;
   } catch (error) {
-    // Errors are generally handled by the caller or emitted centrally
+    throw error;
+  }
+}
+
+export async function loginWithMobile(auth: Auth, mobile: string, password: string) {
+  const email = getPseudoEmail(mobile);
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
     throw error;
   }
 }

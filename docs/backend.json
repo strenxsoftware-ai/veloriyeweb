@@ -23,7 +23,7 @@
         "details": { "type": "string", "description": "Styling details." },
         "sizes": { 
           "type": "array",
-          "items": { "type": "string", "enum": ["XS", "S", "M", "L", "XL"] },
+          "items": { "type": "string", "enum": ["XS", "S", "M", "L", "XL", "XXL"] },
           "description": "Available sizes."
         },
         "stock": { "type": "number", "description": "Inventory count." },
@@ -40,7 +40,26 @@
         "email": { "type": "string" },
         "displayName": { "type": "string" },
         "photoURL": { "type": "string" },
-        "lastLogin": { "type": "string", "format": "date-time" }
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "gender": { "type": "string", "enum": ["male", "female"] },
+            "dob": { "type": "string", "format": "date" },
+            "topwearType": { "type": "string", "enum": ["Kurtas", "Tops", "Dresses"] },
+            "height": { "type": "string" },
+            "weight": { "type": "string" },
+            "shape": { "type": "string", "enum": ["A-Line", "Anarkali", "Pathani", "Straight"] },
+            "size": { "type": "string", "enum": ["XS", "S", "M", "L", "XL", "XXL"] },
+            "braSize": {
+              "type": "object",
+              "properties": {
+                "band": { "type": "string" },
+                "cup": { "type": "string" }
+              }
+            }
+          }
+        }
       }
     }
   },

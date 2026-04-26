@@ -10,20 +10,6 @@ service cloud.firestore {
      * product catalog. It prioritizes "Authorization Independence" by leveraging path 
      * structures to define access rights, minimizing the need for costly cross-document 
      * lookups (get() calls).
-     * 
-     * Data Structure:
-     * 1. Public Content: /products, /categories, and /customer_reviews are globally readable.
-     * 2. User-Specific Data: Private data for authenticated users is nested under /users/{userId}.
-     * 3. Guest Data: Temporary session-based data is stored under /guest_carts and /guest_ai_sessions.
-     * 
-     * Key Security Decisions:
-     * - Ownership: Established via path variables ({userId}, {sessionId}) and validated against 
-     *   request.auth.uid. This supports both password and anonymous authentication providers.
-     * - Relational Integrity: On creation of sub-resources (like cart items), the rules enforce 
-     *   that the internal foreign key (e.g., cartId) matches the parent ID in the path.
-     * - Immutable Keys: ID fields used for relational linking are made immutable on update.
-     * - Guest Access: Guest users are expected to use Firebase Anonymous Authentication. The 
-     *   'sessionId' in guest paths is mapped to the anonymous user's UID.
      */
 
     // --- Helper Functions ---
@@ -52,10 +38,6 @@ service cloud.firestore {
 
     /**
      * @description Publicly accessible catalog of fashion products.
-     * @path /products/{productId}
-     * @allow (get) Any user. (list) Any user.
-     * @deny (create/update/delete) Any non-admin user.
-     * @principle Public Read with Admin-Only Writes.
      */
     match /products/{productId} {
       allow read: if true;
@@ -64,10 +46,6 @@ service cloud.firestore {
 
     /**
      * @description Publicly accessible list of product categories.
-     * @path /categories/{categoryId}
-     * @allow (get) Any user. (list) Any user.
-     * @deny (create/update/delete) Any non-admin user.
-     * @principle Public Read with Admin-Only Writes.
      */
     match /categories/{categoryId} {
       allow read: if true;
@@ -76,10 +54,6 @@ service cloud.firestore {
 
     /**
      * @description Customer reviews for products.
-     * @path /customer_reviews/{reviewId}
-     * @allow (get/list) Any user. (create) Authenticated users.
-     * @deny (update/delete) Any user (prevents review tampering).
-     * @principle User-generated content with immutability.
      */
     match /customer_reviews/{reviewId} {
       allow read: if true;
@@ -96,10 +70,15 @@ service cloud.firestore {
       allow delete: if false;
 
       /**
+       * @description User's personal wishlist.
+       * @path /users/{userId}/wishlist/{productId}
+       */
+      match /wishlist/{productId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      /**
        * @description User's personal shopping cart.
-       * @path /users/{userId}/carts/{cartId}
-       * @allow (create) Owner setting data matching path ID.
-       * @principle Path-based ownership and relational integrity.
        */
       match /carts/{cartId} {
         allow get, list: if isOwner(userId);
@@ -107,12 +86,6 @@ service cloud.firestore {
         allow update: if isExistingOwner(userId) && incomingData().id == resource.data.id;
         allow delete: if isExistingOwner(userId);
 
-        /**
-         * @description Items within a user's cart.
-         * @path /users/{userId}/carts/{cartId}/cart_items/{cartItemId}
-         * @allow (create) Owner linking item to correct parent cart.
-         * @principle Subcollection inheritance and link validation.
-         */
         match /cart_items/{cartItemId} {
           allow read: if isOwner(userId);
           allow create: if isOwner(userId) && incomingData().cartId == cartId;
@@ -123,28 +96,20 @@ service cloud.firestore {
 
       /**
        * @description User's order history and details.
-       * @path /users/{userId}/orders/{orderId}
        */
       match /orders/{orderId} {
         allow get, list: if isOwner(userId);
         allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId); // Status changes handled by backend usually
+        allow update: if isExistingOwner(userId); 
         allow delete: if false;
 
         match /order_items/{orderItemId} {
           allow read: if isOwner(userId);
           allow create: if isOwner(userId) && incomingData().orderId == orderId;
-          allow update: if false; // Order items are immutable
-          allow delete: if false;
-        }
-
-        match /shipping_address/{id} {
-          allow read: if isOwner(userId);
-          allow create: if isOwner(userId);
           allow update, delete: if false;
         }
 
-        match /billing_address/{id} {
+        match /shipping_address/{id} {
           allow read: if isOwner(userId);
           allow create: if isOwner(userId);
           allow update, delete: if false;
@@ -153,8 +118,6 @@ service cloud.firestore {
 
       /**
        * @description Personalized AI suggestions for users.
-       * @path /users/{userId}/ai_suggestions/{suggestionId}
-       * @principle Ensures 'sessionId' in document matches owner.
        */
       match /ai_suggestions/{suggestionId} {
         allow read, list: if isOwner(userId);
@@ -165,13 +128,9 @@ service cloud.firestore {
 
     // --- Guest-Scoped Data (Anonymous Auth) ---
 
-    /**
-     * @description Guest carts linked to anonymous UID (sessionId).
-     * @path /guest_carts/{sessionId}
-     */
     match /guest_carts/{sessionId} {
       allow get: if isOwner(sessionId);
-      allow list: if false; // Guests shouldn't list all guest carts
+      allow list: if false;
       allow create: if isOwner(sessionId) && incomingData().id == sessionId;
       allow update: if isExistingOwner(sessionId) && incomingData().id == resource.data.id;
       allow delete: if isExistingOwner(sessionId);
@@ -184,46 +143,17 @@ service cloud.firestore {
       }
     }
 
-    /**
-     * @description Guest orders. Note: Guest orders are sensitive. 
-     * In this prototype, we restrict get/list to the creator (anonymous UID).
-     */
     match /guest_orders/{orderId} {
-      // In a production scenario, guestEmail/Phone validation might happen via a secure backend function.
-      // Here, we rely on the anonymous user who created the order.
       allow get: if isSignedIn(); 
       allow list: if false;
       allow create: if isSignedIn();
       allow update, delete: if false;
-
-      match /order_items/{orderItemId} {
-        allow read: if isSignedIn();
-        allow create: if isSignedIn() && incomingData().orderId == orderId;
-        allow update, delete: if false;
-      }
-
-      match /shipping_address/{id} {
-        allow read: if isSignedIn();
-        allow create: if isSignedIn();
-        allow update, delete: if false;
-      }
-
-      match /billing_address/{id} {
-        allow read: if isSignedIn();
-        allow create: if isSignedIn();
-        allow update, delete: if false;
-      }
     }
 
-    /**
-     * @description Guest AI suggestions linked to anonymous session.
-     * @path /guest_ai_sessions/{sessionId}/suggestions/{suggestionId}
-     */
     match /guest_ai_sessions/{sessionId}/suggestions/{suggestionId} {
       allow get, list: if isOwner(sessionId);
       allow create: if isOwner(sessionId) && incomingData().sessionId == sessionId;
       allow update, delete: if false;
     }
-
   }
 }

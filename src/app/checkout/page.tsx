@@ -16,7 +16,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, clearCart } = useShop();
+  const { cart, cartTotal } = useShop();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,6 @@ export default function CheckoutPage() {
     setTimeout(() => {
       setLoading(false);
       router.push("/checkout/success");
-      // Note: clearCart is a hypothetical helper I'll add to ShopContext
     }, 2000);
   };
 
@@ -167,18 +166,21 @@ export default function CheckoutPage() {
               <div className="bg-muted/30 p-8 sticky top-32">
                 <h3 className="text-xl font-headline font-bold uppercase tracking-widest mb-8">Order Summary</h3>
                 <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                  {cart.map((item) => (
-                    <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
-                      <div className="relative w-16 h-20 bg-muted flex-shrink-0">
-                        <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                  {cart.map((item) => {
+                    const displayImage = item.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
+                    return (
+                      <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
+                        <div className="relative w-16 h-20 bg-muted flex-shrink-0">
+                          <Image src={displayImage} alt={item.name} fill className="object-cover" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
+                          <p className="text-[10px] text-muted-foreground uppercase font-medium">Qty: {item.quantity} • Size: {item.selectedSize}</p>
+                          <p className="text-xs font-bold">₹{(item.price * item.quantity).toLocaleString()}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
-                        <p className="text-[10px] text-muted-foreground uppercase font-medium">Qty: {item.quantity} • Size: {item.selectedSize}</p>
-                        <p className="text-xs font-bold">₹{(item.price * item.quantity).toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 
                 <Separator className="mb-6" />

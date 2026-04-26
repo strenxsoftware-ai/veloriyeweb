@@ -12,7 +12,6 @@ import {
   Package, 
   Heart, 
   MapPin, 
-  HelpCircle, 
   LogOut, 
   Camera,
   ChevronRight,
@@ -101,12 +100,6 @@ export default function ProfilePage() {
       icon: <MapPin className="w-5 h-5" />,
       description: "Update your delivery and contact details",
       href: "/profile/address",
-    },
-    {
-      title: "Help Center",
-      icon: <HelpCircle className="w-5 h-5" />,
-      description: "FAQs, returns, and support",
-      href: "/contact",
     },
   ];
 

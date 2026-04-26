@@ -6,55 +6,36 @@ service cloud.firestore {
      * VILORYI E-COMMERCE SECURITY RULES
      * 
      * Philosophy:
-     * This ruleset implements a strict user-ownership model combined with a public-read 
-     * product catalog. It prioritizes "Authorization Independence" by leveraging path 
-     * structures to define access rights, minimizing the need for costly cross-document 
-     * lookups (get() calls).
+     * Strict user-ownership model. Users own their data under /users/{userId}.
+     * Public read access for catalog items (products, categories).
      */
 
     // --- Helper Functions ---
 
-    /** @description Checks if the user is authenticated (including anonymous). */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided ID. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Validates ownership and ensures the document exists for updates/deletes. */
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
-    /** @description Helper to get incoming data. */
     function incomingData() {
       return request.resource.data;
     }
 
     // --- Public Collections ---
 
-    /**
-     * @description Publicly accessible catalog of fashion products.
-     */
     match /products/{productId} {
       allow read: if true;
-      allow create, update, delete: if false; // Managed by Admin SDK/Dashboard
+      allow write: if false;
     }
 
-    /**
-     * @description Publicly accessible list of product categories.
-     */
     match /categories/{categoryId} {
       allow read: if true;
-      allow create, update, delete: if false; // Managed by Admin SDK/Dashboard
+      allow write: if false;
     }
 
-    /**
-     * @description Customer reviews for products.
-     */
     match /customer_reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
@@ -64,95 +45,31 @@ service cloud.firestore {
     // --- User-Scoped Data (Authenticated) ---
 
     match /users/{userId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      // Allow the user to manage their own profile document
+      allow get, list, create, update: if isOwner(userId);
       allow delete: if false;
 
       /**
-       * @description User's personal wishlist.
-       * @path /users/{userId}/wishlist/{productId}
+       * Recursive match for all subcollections under a user's document.
+       * This covers wishlist, carts, orders, ai_suggestions, etc.
        */
-      match /wishlist/{productId} {
+      match /{allSubcollections=**} {
         allow read, write: if isOwner(userId);
-      }
-
-      /**
-       * @description User's personal shopping cart.
-       */
-      match /carts/{cartId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && incomingData().id == cartId;
-        allow update: if isExistingOwner(userId) && incomingData().id == resource.data.id;
-        allow delete: if isExistingOwner(userId);
-
-        match /cart_items/{cartItemId} {
-          allow read: if isOwner(userId);
-          allow create: if isOwner(userId) && incomingData().cartId == cartId;
-          allow update: if isExistingOwner(userId) && incomingData().cartId == resource.data.cartId;
-          allow delete: if isExistingOwner(userId);
-        }
-      }
-
-      /**
-       * @description User's order history and details.
-       */
-      match /orders/{orderId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isExistingOwner(userId); 
-        allow delete: if false;
-
-        match /order_items/{orderItemId} {
-          allow read: if isOwner(userId);
-          allow create: if isOwner(userId) && incomingData().orderId == orderId;
-          allow update, delete: if false;
-        }
-
-        match /shipping_address/{id} {
-          allow read: if isOwner(userId);
-          allow create: if isOwner(userId);
-          allow update, delete: if false;
-        }
-      }
-
-      /**
-       * @description Personalized AI suggestions for users.
-       */
-      match /ai_suggestions/{suggestionId} {
-        allow read, list: if isOwner(userId);
-        allow create: if isOwner(userId) && incomingData().sessionId == userId;
-        allow update, delete: if false;
       }
     }
 
-    // --- Guest-Scoped Data (Anonymous Auth) ---
+    // --- Guest/Session Data (Handled via UID/SessionID) ---
 
     match /guest_carts/{sessionId} {
-      allow get: if isOwner(sessionId);
-      allow list: if false;
-      allow create: if isOwner(sessionId) && incomingData().id == sessionId;
-      allow update: if isExistingOwner(sessionId) && incomingData().id == resource.data.id;
-      allow delete: if isExistingOwner(sessionId);
-
-      match /cart_items/{cartItemId} {
-        allow read: if isOwner(sessionId);
-        allow create: if isOwner(sessionId) && incomingData().cartId == sessionId;
-        allow update: if isExistingOwner(sessionId) && incomingData().cartId == resource.data.cartId;
-        allow delete: if isExistingOwner(sessionId);
+      allow get, create, update, delete: if isOwner(sessionId);
+      
+      match /{allSubcollections=**} {
+        allow read, write: if isOwner(sessionId);
       }
     }
 
     match /guest_orders/{orderId} {
-      allow get: if isSignedIn(); 
-      allow list: if false;
-      allow create: if isSignedIn();
-      allow update, delete: if false;
-    }
-
-    match /guest_ai_sessions/{sessionId}/suggestions/{suggestionId} {
-      allow get, list: if isOwner(sessionId);
-      allow create: if isOwner(sessionId) && incomingData().sessionId == sessionId;
+      allow get, create: if isSignedIn();
       allow update, delete: if false;
     }
   }

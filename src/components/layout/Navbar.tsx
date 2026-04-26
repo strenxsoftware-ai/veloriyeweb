@@ -1,17 +1,23 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingBag, Menu } from "lucide-react";
+import { ShoppingBag, Menu, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useShop } from "@/context/ShopContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CartDrawer } from "@/components/shop/CartDrawer";
+import { useUser } from "@/firebase";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { cart, setIsCartOpen, isCartOpen } = useShop();
+  const { user } = useUser();
 
   useEffect(() => {
     setMounted(true);
@@ -51,6 +57,7 @@ export const Navbar = () => {
                   <Link href="/#collections" className="text-xl font-headline tracking-widest">COLLECTIONS</Link>
                   <Link href="/about" className="text-xl font-headline tracking-widest">ABOUT</Link>
                   <Link href="/contact" className="text-xl font-headline tracking-widest">CONTACT</Link>
+                  {user && <Link href="/profile" className="text-xl font-headline tracking-widest">MY PROFILE</Link>}
                 </div>
               </SheetContent>
             </Sheet>
@@ -63,26 +70,44 @@ export const Navbar = () => {
           </h1>
         </Link>
 
-        <div className="flex-1 flex items-center justify-end gap-2 md:gap-6">
+        <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
           {mounted && (
-            <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingBag className="w-5 h-5" />
-                  {mounted && cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                      {cartCount}
-                    </span>
-                  )}
+            <>
+              <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <ShoppingBag className="w-5 h-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md bg-background flex flex-col p-0">
+                  <CartDrawer />
+                </SheetContent>
+              </Sheet>
+
+              {user ? (
+                <Link href="/profile">
+                  <Avatar className="w-8 h-8 border border-muted hover:border-accent transition-colors">
+                    <AvatarImage src={user.photoURL || ""} alt={user.displayName || "User"} />
+                    <AvatarFallback className="bg-muted text-[10px] font-bold">
+                      {user.displayName?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              ) : (
+                <Button variant="ghost" size="icon" onClick={() => setIsLoginOpen(true)}>
+                  <UserIcon className="w-5 h-5" />
                 </Button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-md bg-background flex flex-col p-0">
-                <CartDrawer />
-              </SheetContent>
-            </Sheet>
+              )}
+            </>
           )}
         </div>
       </div>
+      <LoginDialog isOpen={isLoginOpen} onOpenChange={setIsLoginOpen} />
     </nav>
   );
 };

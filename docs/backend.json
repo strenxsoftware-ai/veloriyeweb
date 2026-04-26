@@ -44,10 +44,13 @@
         "preferences": {
           "type": "object",
           "properties": {
-            "gender": { "type": "string", "enum": ["male", "female"] },
+            "gender": { "type": "string", "enum": ["female"] },
             "dob": { "type": "string", "format": "date" },
             "topwearType": { "type": "string", "enum": ["Kurtas", "Tops", "Dresses"] },
-            "bottomwearType": { "type": "string", "enum": ["Palazzos", "Trousers", "Leggings", "Skirts"] },
+            "bottomwearType": { "type": "string", "enum": ["Pants", "Palazzo", "Leggings", "Jeans"] },
+            "bottomwearOccasion": { "type": "string", "enum": ["Daily Wear", "Office Wear", "Casual Outing"] },
+            "bottomwearFit": { "type": "string", "enum": ["Flared", "Loose Fit", "Regular Fit", "Skinny Fit", "Slim Fit", "Straight Fit", "Tapered Fit"] },
+            "bottomwearSize": { "type": "string" },
             "height": { "type": "string" },
             "weight": { "type": "string" },
             "shape": { "type": "string", "enum": ["A-Line", "Anarkali", "Pathani", "Straight"] },

@@ -221,18 +221,26 @@ export default function PreferencesPage() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <Label className="text-[10px] tracking-widest font-bold uppercase">Full Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="rounded-none h-12" />
+                <input 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  className="w-full rounded-none h-12 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] tracking-widest font-bold uppercase">Gender</Label>
                 <RadioGroup value={formData.gender} onValueChange={(v) => setFormData({...formData, gender: v})} className="flex gap-4">
                   <GenderLabel value="female" label="Female" />
-                  <GenderLabel value="male" label="Male" />
                 </RadioGroup>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] tracking-widest font-bold uppercase">Date of Birth</Label>
-                <Input type="date" value={formData.dob} onChange={(e) => setFormData({...formData, dob: e.target.value})} className="rounded-none h-12" />
+                <input 
+                  type="date" 
+                  value={formData.dob} 
+                  onChange={(e) => setFormData({...formData, dob: e.target.value})} 
+                  className="w-full rounded-none h-12 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
+                />
               </div>
             </div>
             <FormActions onCancel={() => setActiveSection(null)} onSave={handleSave} loading={loading} />
@@ -359,11 +367,21 @@ export default function PreferencesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] tracking-widest font-bold uppercase">Height</Label>
-                  <Input value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} placeholder="e.g. 5'5\" className="rounded-none h-12" />
+                  <input 
+                    value={formData.height} 
+                    onChange={(e) => setFormData({...formData, height: e.target.value})} 
+                    placeholder="e.g. 5'5\" 
+                    className="w-full rounded-none h-12 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] tracking-widest font-bold uppercase">Weight</Label>
-                  <Input value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} placeholder="e.g. 60kg" className="rounded-none h-12" />
+                  <input 
+                    value={formData.weight} 
+                    onChange={(e) => setFormData({...formData, weight: e.target.value})} 
+                    placeholder="e.g. 60kg" 
+                    className="w-full rounded-none h-12 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
+                  />
                 </div>
               </div>
               <div className="space-y-4">
@@ -371,20 +389,20 @@ export default function PreferencesPage() {
                 <div className="flex gap-4">
                   <div className="flex-1 space-y-2">
                     <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Band</span>
-                    <Input 
+                    <input 
                       value={formData.braSize.band} 
                       onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, band: e.target.value}})} 
                       placeholder="32" 
-                      className="rounded-none h-10" 
+                      className="w-full rounded-none h-10 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
                     />
                   </div>
                   <div className="flex-1 space-y-2">
                     <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Cup</span>
-                    <Input 
+                    <input 
                       value={formData.braSize.cup} 
                       onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, cup: e.target.value}})} 
                       placeholder="B" 
-                      className="rounded-none h-10" 
+                      className="w-full rounded-none h-10 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
                     />
                   </div>
                 </div>

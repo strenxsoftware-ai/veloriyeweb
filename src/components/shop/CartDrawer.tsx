@@ -40,18 +40,28 @@ export const CartDrawer = () => {
           const displayImage = item.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
           return (
             <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
-              <div className="relative w-24 h-32 flex-shrink-0 bg-muted overflow-hidden">
+              <Link 
+                href={`/product/${item.id}`} 
+                onClick={() => setIsCartOpen(false)}
+                className="relative w-24 h-32 flex-shrink-0 bg-muted overflow-hidden hover:opacity-90 transition-opacity"
+              >
                 <Image
                   src={displayImage}
                   alt={item.name}
                   fill
                   className="object-cover"
                 />
-              </div>
+              </Link>
               <div className="flex flex-col justify-between flex-1 py-1">
                 <div>
                   <div className="flex justify-between items-start">
-                    <h4 className="font-medium text-sm tracking-tight">{item.name}</h4>
+                    <Link 
+                      href={`/product/${item.id}`} 
+                      onClick={() => setIsCartOpen(false)}
+                      className="hover:text-accent transition-colors"
+                    >
+                      <h4 className="font-medium text-sm tracking-tight">{item.name}</h4>
+                    </Link>
                     <button onClick={() => removeFromCart(item.id, item.selectedSize)}>
                       <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
                     </button>

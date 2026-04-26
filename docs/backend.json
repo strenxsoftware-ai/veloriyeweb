@@ -67,23 +67,13 @@
     "providers": ["google.com"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "schema": { "$ref": "#/backend/entities/Product" },
-          "description": "Public product catalog."
-        }
-      },
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "Private user profiles."
-        }
-      }
-    ]
+    "/products/{productId}": {
+      "schema": { "$ref": "#/backend/entities/Product" },
+      "description": "Public product catalog."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
+      "description": "Private user profiles and preferences."
+    }
   }
 }

@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { 
@@ -12,21 +12,13 @@ import {
   ChevronLeft, 
   CheckCircle2, 
   Sparkles,
-  ArrowRight,
-  User as UserIcon
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 'success';
@@ -74,37 +66,47 @@ export default function PreferencesPage() {
   }, [userData, user]);
 
   const nextStep = () => {
-    setStep((prev) => (prev as number) + 1 as Step);
+    setStep((prev) => (prev === 'success' ? 'success' : (prev as number) + 1) as Step);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const prevStep = () => {
-    setStep((prev) => (prev as number) - 1 as Step);
+    setStep((prev) => (prev === 'success' ? 'success' : (prev as number) - 1) as Step);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!userRef) return;
     setLoading(true);
-    try {
-      await updateDoc(userRef, {
-        displayName: formData.name,
-        preferences: {
-          gender: formData.gender,
-          dob: formData.dob,
-          topwearType: formData.topwearType,
-          height: formData.height,
-          weight: formData.weight,
-          shape: formData.shape,
-          size: formData.size,
-          braSize: formData.braSize
-        }
+    
+    const updateData = {
+      displayName: formData.name,
+      preferences: {
+        gender: formData.gender,
+        dob: formData.dob,
+        topwearType: formData.topwearType,
+        height: formData.height,
+        weight: formData.weight,
+        shape: formData.shape,
+        size: formData.size,
+        braSize: formData.braSize
+      }
+    };
+
+    // Non-blocking update per guidelines
+    updateDoc(userRef, updateData)
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: updateData
+        }));
       });
+    
+    // Optimistic UI update
+    setTimeout(() => {
       setStep('success');
-    } catch (error) {
-      console.error("Error saving preferences:", error);
-    } finally {
       setLoading(false);
-    }
+    }, 500);
   };
 
   if (isUserLoading) {

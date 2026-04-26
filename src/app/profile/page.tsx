@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useAuth } from "@/firebase";
@@ -30,6 +30,12 @@ export default function ProfilePage() {
   const auth = useAuth();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/");
+    }
+  }, [user, isUserLoading, router]);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -68,7 +74,6 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    if (typeof window !== "undefined") router.push("/");
     return null;
   }
 

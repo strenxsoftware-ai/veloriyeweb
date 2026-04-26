@@ -1,7 +1,6 @@
-
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -22,6 +21,12 @@ export default function WishlistPage() {
   const db = useFirestore();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/");
+    }
+  }, [user, isUserLoading, router]);
+
   const wishlistQuery = useMemoFirebase(() => {
     if (!db || !user?.uid) return null;
     return collection(db, "users", user.uid, "wishlist");
@@ -41,10 +46,7 @@ export default function WishlistPage() {
     );
   }
 
-  if (!user) {
-    if (typeof window !== "undefined") router.push("/");
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <main className="min-h-screen bg-background">
@@ -71,7 +73,7 @@ export default function WishlistPage() {
               ))}
             </div>
           ) : !wishlist || wishlist.length === 0 ? (
-            <div className="text-center py-24 bg-muted/20 border border-dashed border-muted space-y-6">
+            <div className="text-center py-24 bg-muted/20 border border-dashed border-muted rounded-none space-y-6">
               <Heart className="w-16 h-16 mx-auto text-muted-foreground/20" />
               <div className="space-y-2">
                 <h3 className="text-xl font-headline font-bold">Your wishlist is empty</h3>

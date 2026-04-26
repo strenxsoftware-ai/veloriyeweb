@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -36,6 +35,12 @@ export default function AddressPage() {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [contactLoading, setContactLoading] = useState(false);
   
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/");
+    }
+  }, [user, isUserLoading, router]);
+
   const userRef = useMemoFirebase(() => {
     if (!db || !user?.uid) return null;
     return doc(db, "users", user.uid);
@@ -95,10 +100,7 @@ export default function AddressPage() {
   };
 
   if (isUserLoading) return <LoadingState />;
-  if (!user) {
-    if (typeof window !== "undefined") router.push("/");
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <main className="min-h-screen bg-background">

@@ -1,7 +1,6 @@
-
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -28,6 +27,12 @@ export default function OrdersPage() {
   const db = useFirestore();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/");
+    }
+  }, [user, isUserLoading, router]);
+
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user?.uid) return null;
     return query(
@@ -52,10 +57,7 @@ export default function OrdersPage() {
     );
   }
 
-  if (!user) {
-    if (typeof window !== "undefined") router.push("/");
-    return null;
-  }
+  if (!user) return null;
 
   const getStatusIcon = (status: string) => {
     switch (status?.toLowerCase()) {

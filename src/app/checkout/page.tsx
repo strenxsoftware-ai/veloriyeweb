@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useShop } from "@/context/ShopContext";
@@ -14,11 +13,20 @@ import { ChevronLeft, ShoppingBag, CreditCard, Truck, CheckCircle2 } from "lucid
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/firebase";
 
 export default function CheckoutPage() {
   const { cart, cartTotal } = useShop();
+  const { user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +84,15 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-[10px] tracking-widest font-bold uppercase">Email Address</Label>
-                      <Input id="email" type="email" required placeholder="jane@example.com" className="rounded-none h-12" />
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        required 
+                        placeholder="jane@example.com" 
+                        className="rounded-none h-12"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-[10px] tracking-widest font-bold uppercase">Phone Number</Label>
@@ -170,11 +186,16 @@ export default function CheckoutPage() {
                     const displayImage = item.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
                     return (
                       <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
-                        <div className="relative w-16 h-20 bg-muted flex-shrink-0">
+                        <Link 
+                          href={`/product/${item.id}`}
+                          className="relative w-16 h-20 bg-muted flex-shrink-0 hover:opacity-80 transition-opacity"
+                        >
                           <Image src={displayImage} alt={item.name} fill className="object-cover" />
-                        </div>
+                        </Link>
                         <div className="flex-1 space-y-1">
-                          <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
+                          <Link href={`/product/${item.id}`} className="hover:text-accent transition-colors">
+                            <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
+                          </Link>
                           <p className="text-[10px] text-muted-foreground uppercase font-medium">Qty: {item.quantity} • Size: {item.selectedSize}</p>
                           <p className="text-xs font-bold">₹{(item.price * item.quantity).toLocaleString()}</p>
                         </div>

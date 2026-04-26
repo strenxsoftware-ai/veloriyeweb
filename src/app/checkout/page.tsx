@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useShop } from "@/context/ShopContext";
@@ -9,33 +10,88 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { ChevronLeft, ShoppingBag, CreditCard, Truck, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ShoppingBag, CreditCard, Truck, CheckCircle2, MapPin, Pencil } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { toast } from "@/hooks/use-toast";
 
 export default function CheckoutPage() {
-  const { cart, cartTotal } = useShop();
-  const { user } = useUser();
+  const { cart, cartTotal, clearCart } = useShop();
+  const { user, isUserLoading } = useUser();
+  const db = useFirestore();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user?.uid]);
+
+  const addressesRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return collection(db, "users", user.uid, "addresses");
+  }, [db, user?.uid]);
+
+  const { data: userData } = useDoc(userRef);
+  const { data: addresses } = useCollection(addressesRef);
 
   useEffect(() => {
-    if (user?.email) {
-      setEmail(user.email);
+    if (userData) {
+      setEmail(userData.email || "");
+      setPhone(userData.mobile || "");
     }
-  }, [user]);
+  }, [userData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (addresses && addresses.length > 0) {
+      const defaultAddr = addresses.find((a: any) => a.isDefault);
+      if (defaultAddr) setSelectedAddressId(defaultAddr.id);
+      else setSelectedAddressId(addresses[0].id);
+    }
+  }, [addresses]);
+
+  const selectedAddress = useMemo(() => {
+    return addresses?.find((a: any) => a.id === selectedAddressId);
+  }, [addresses, selectedAddressId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user || !db || !selectedAddress) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Please ensure you have a selected shipping address." });
+      return;
+    }
+
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    
+    const orderData = {
+      userId: user.uid,
+      items: cart,
+      totalAmount: cartTotal,
+      status: "Processing",
+      email,
+      phone,
+      shippingAddress: selectedAddress,
+      createdAt: serverTimestamp(),
+      itemsCount: cart.length
+    };
+
+    try {
+      const ordersRef = collection(db, "users", user.uid, "orders");
+      await addDoc(ordersRef, orderData);
       router.push("/checkout/success");
-    }, 2000);
+    } catch (err) {
+      console.error("Order creation error:", err);
+      toast({ variant: "destructive", title: "Order Failed", description: "Could not place your order. Please try again." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (cart.length === 0) {
@@ -57,7 +113,6 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Simplified Header for focus */}
       <header className="border-b bg-background sticky top-0 z-50">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-2xl font-headline font-bold tracking-widest">VILORYI</Link>
@@ -71,7 +126,6 @@ export default function CheckoutPage() {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             
-            {/* Left: Checkout Form */}
             <div className="lg:col-span-7 space-y-12">
               <form onSubmit={handleSubmit} className="space-y-12">
                 
@@ -96,47 +150,70 @@ export default function CheckoutPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-[10px] tracking-widest font-bold uppercase">Phone Number</Label>
-                      <Input id="phone" type="tel" required placeholder="+91 98765 43210" className="rounded-none h-12" />
+                      <Input 
+                        id="phone" 
+                        type="tel" 
+                        required 
+                        placeholder="9876543210" 
+                        className="rounded-none h-12"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
 
-                {/* Shipping Address */}
+                {/* Shipping Address Selection */}
                 <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</span>
-                    <h2 className="text-xl font-headline font-bold uppercase tracking-widest">Shipping Address</h2>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">2</span>
+                      <h2 className="text-xl font-headline font-bold uppercase tracking-widest">Shipping Address</h2>
+                    </div>
+                    <Link href="/profile/address/manage" className="text-[10px] font-bold tracking-widest uppercase text-accent border-b border-accent pb-1">
+                      + ADD NEW
+                    </Link>
                   </div>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-[10px] tracking-widest font-bold uppercase">First Name</Label>
-                        <Input id="firstName" required placeholder="Jane" className="rounded-none h-12" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-[10px] tracking-widest font-bold uppercase">Last Name</Label>
-                        <Input id="lastName" required placeholder="Doe" className="rounded-none h-12" />
-                      </div>
+
+                  {!addresses || addresses.length === 0 ? (
+                    <div className="p-8 border border-dashed border-muted text-center space-y-4">
+                      <p className="text-sm text-muted-foreground italic">"Please add a shipping address to continue."</p>
+                      <Link href="/profile/address/manage">
+                        <Button type="button" variant="outline" className="rounded-none tracking-widest uppercase font-bold text-xs">ADD ADDRESS</Button>
+                      </Link>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address" className="text-[10px] tracking-widest font-bold uppercase">Street Address</Label>
-                      <Input id="address" required placeholder="House No. / Street Name" className="rounded-none h-12" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="city" className="text-[10px] tracking-widest font-bold uppercase">City</Label>
-                        <Input id="city" required placeholder="Delhi" className="rounded-none h-12" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state" className="text-[10px] tracking-widest font-bold uppercase">State</Label>
-                        <Input id="state" required placeholder="Delhi" className="rounded-none h-12" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pincode" className="text-[10px] tracking-widest font-bold uppercase">Pincode</Label>
-                        <Input id="pincode" required placeholder="110001" className="rounded-none h-12" />
-                      </div>
-                    </div>
-                  </div>
+                  ) : (
+                    <RadioGroup value={selectedAddressId || ""} onValueChange={setSelectedAddressId} className="grid grid-cols-1 gap-4">
+                      {addresses.map((addr: any) => (
+                        <Label
+                          key={addr.id}
+                          htmlFor={`addr-${addr.id}`}
+                          className={cn(
+                            "flex items-start justify-between p-6 border cursor-pointer transition-all",
+                            selectedAddressId === addr.id ? "border-accent bg-accent/5" : "border-muted hover:border-accent/50"
+                          )}
+                        >
+                          <div className="flex items-start gap-4">
+                            <RadioGroupItem value={addr.id} id={`addr-${addr.id}`} className="mt-1" />
+                            <div className="space-y-1">
+                              <p className="text-sm font-bold uppercase flex items-center gap-2">
+                                {addr.name}
+                                <Badge className="text-[8px] bg-muted text-primary hover:bg-muted rounded-none">{addr.type}</Badge>
+                              </p>
+                              <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                                {addr.houseNo}, {addr.building}, {addr.locality}<br />
+                                {addr.city}, {addr.state} - {addr.pincode}
+                              </p>
+                              <p className="text-xs font-medium pt-1">{addr.mobile}</p>
+                            </div>
+                          </div>
+                          <Link href={`/profile/address/manage?id=${addr.id}`} onClick={(e) => e.stopPropagation()}>
+                            <Pencil className="w-4 h-4 text-muted-foreground hover:text-accent" />
+                          </Link>
+                        </Label>
+                      ))}
+                    </RadioGroup>
+                  )}
                 </div>
 
                 {/* Payment Method */}
@@ -152,9 +229,8 @@ export default function CheckoutPage() {
                     >
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="upi" id="upi" />
-                        <span className="text-xs font-bold tracking-widest uppercase">UPI / PhonePe / GPay</span>
+                        <span className="text-xs font-bold tracking-widest uppercase">UPI / Online Pay</span>
                       </div>
-                      <CheckCircle2 className="w-4 h-4 text-accent opacity-0 peer-data-[state=checked]:opacity-100" />
                     </Label>
                     <Label
                       htmlFor="cod"
@@ -169,7 +245,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <Button 
-                  disabled={loading}
+                  disabled={loading || !selectedAddressId}
                   className="w-full bg-primary text-white py-8 tracking-[0.3em] font-bold uppercase rounded-none hover:bg-foreground/90 transition-all text-sm"
                 >
                   {loading ? "PROCESSING..." : `PLACE ORDER • ₹${cartTotal.toLocaleString()}`}
@@ -186,16 +262,11 @@ export default function CheckoutPage() {
                     const displayImage = item.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
                     return (
                       <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
-                        <Link 
-                          href={`/product/${item.id}`}
-                          className="relative w-16 h-20 bg-muted flex-shrink-0 hover:opacity-80 transition-opacity"
-                        >
+                        <div className="relative w-16 h-20 bg-muted flex-shrink-0">
                           <Image src={displayImage} alt={item.name} fill className="object-cover" />
-                        </Link>
+                        </div>
                         <div className="flex-1 space-y-1">
-                          <Link href={`/product/${item.id}`} className="hover:text-accent transition-colors">
-                            <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
-                          </Link>
+                          <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
                           <p className="text-[10px] text-muted-foreground uppercase font-medium">Qty: {item.quantity} • Size: {item.selectedSize}</p>
                           <p className="text-xs font-bold">₹{(item.price * item.quantity).toLocaleString()}</p>
                         </div>

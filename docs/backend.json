@@ -40,21 +40,24 @@
         "email": { "type": "string" },
         "displayName": { "type": "string" },
         "photoURL": { "type": "string" },
+        "mobile": { "type": "string" },
+        "altMobile": { "type": "string" },
+        "altName": { "type": "string" },
         "lastLogin": { "type": "string", "format": "date-time" },
         "preferences": {
           "type": "object",
           "properties": {
             "gender": { "type": "string", "enum": ["female"] },
             "dob": { "type": "string", "format": "date" },
-            "topwearType": { "type": "string", "enum": ["Kurtas", "Tops", "Dresses"] },
-            "bottomwearType": { "type": "string", "enum": ["Pants", "Palazzo", "Leggings", "Jeans"] },
-            "bottomwearOccasion": { "type": "string", "enum": ["Daily Wear", "Office Wear", "Casual Outing"] },
-            "bottomwearFit": { "type": "string", "enum": ["Flared", "Loose Fit", "Regular Fit", "Skinny Fit", "Slim Fit", "Straight Fit", "Tapered Fit"] },
+            "topwearType": { "type": "string" },
+            "bottomwearType": { "type": "string" },
+            "bottomwearOccasion": { "type": "string" },
+            "bottomwearFit": { "type": "string" },
             "bottomwearSize": { "type": "string" },
             "height": { "type": "string" },
             "weight": { "type": "string" },
-            "shape": { "type": "string", "enum": ["A-Line", "Anarkali", "Pathani", "Straight"] },
-            "size": { "type": "string", "enum": ["XS", "S", "M", "L", "XL", "XXL"] },
+            "shape": { "type": "string" },
+            "size": { "type": "string" },
             "braSize": {
               "type": "object",
               "properties": {
@@ -62,6 +65,30 @@
                 "cup": { "type": "string" }
               }
             }
+          }
+        }
+      }
+    },
+    "Address": {
+      "title": "Address",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "mobile": { "type": "string" },
+        "pincode": { "type": "string" },
+        "state": { "type": "string" },
+        "city": { "type": "string" },
+        "houseNo": { "type": "string" },
+        "building": { "type": "string" },
+        "locality": { "type": "string" },
+        "type": { "type": "string", "enum": ["home", "office"] },
+        "isDefault": { "type": "boolean" },
+        "officeHours": {
+          "type": "object",
+          "properties": {
+            "openSaturday": { "type": "boolean" },
+            "openSunday": { "type": "boolean" }
           }
         }
       }
@@ -78,6 +105,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/backend/entities/UserProfile" },
       "description": "Private user profiles and preferences."
+    },
+    "/users/{userId}/addresses/{addressId}": {
+      "schema": { "$ref": "#/backend/entities/Address" },
+      "description": "User's saved shipping addresses."
     },
     "/users/{userId}/wishlist/{productId}": {
       "schema": { "$ref": "#/backend/entities/Product" },

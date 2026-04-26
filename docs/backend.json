@@ -6,28 +6,29 @@
       "type": "object",
       "description": "A fashion item in the Viloryi catalog.",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "price": { "type": "number" },
+        "id": { "type": "string", "description": "Unique product identifier." },
+        "name": { "type": "string", "description": "Display name of the product." },
+        "price": { "type": "number", "description": "Price in local currency (INR)." },
         "category": { 
           "type": "string",
-          "description": "The ID of the category this product belongs to (e.g., 'kurti')." 
+          "description": "The ID of the category this product belongs to (must match a Category document ID)." 
         },
         "images": { 
           "type": "array",
           "items": { "type": "string", "format": "uri" },
-          "description": "Array of image URLs for the product."
+          "description": "Array of image URLs for the product gallery."
         },
-        "description": { "type": "string" },
-        "materials": { "type": "string" },
-        "details": { "type": "string" },
+        "description": { "type": "string", "description": "Marketing description." },
+        "materials": { "type": "string", "description": "Fabric and material composition." },
+        "details": { "type": "string", "description": "Styling and fit details." },
         "sizes": { 
           "type": "array",
-          "items": { "type": "string", "enum": ["XS", "S", "M", "L", "XL"] } 
+          "items": { "type": "string", "enum": ["XS", "S", "M", "L", "XL"] },
+          "description": "Available sizes for the product."
         },
-        "stock": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "isFeatured": { "type": "boolean" }
+        "stock": { "type": "number", "description": "Current inventory count." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when product was added." },
+        "isFeatured": { "type": "boolean", "description": "Flag to show in homepage featured section." }
       },
       "required": ["id", "name", "price", "category", "images", "description"]
     },
@@ -36,10 +37,10 @@
       "type": "object",
       "description": "A classification for products (e.g., Kurti Sets).",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "imageUrl": { "type": "string", "format": "uri" }
+        "id": { "type": "string", "description": "Document ID used for linking (e.g., 'kurti-sets')." },
+        "name": { "type": "string", "description": "Display name (e.g., 'Kurti Sets')." },
+        "description": { "type": "string", "description": "Short category description." },
+        "imageUrl": { "type": "string", "format": "uri", "description": "Thumbnail for category navigation." }
       },
       "required": ["id", "name"]
     }

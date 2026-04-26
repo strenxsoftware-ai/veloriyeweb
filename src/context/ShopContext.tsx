@@ -9,7 +9,7 @@ export type Product = {
   id: string;
   name: string;
   price: number;
-  category: string; // The ID of the category (e.g., 'kurti')
+  category: string; // The ID of the category (e.g., 'kurti-sets')
   images: string[];
   description: string;
   materials: string;

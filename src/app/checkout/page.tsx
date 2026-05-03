@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -17,6 +16,10 @@ import { useRouter } from "next/navigation";
 import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { createRazorpayOrder } from "@/app/actions/razorpay";
+import Script from "next/script";
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useShop();
@@ -28,6 +31,7 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState("upi");
 
   const userRef = useMemoFirebase(() => {
     if (!db || !user?.uid) return null;
@@ -61,6 +65,67 @@ export default function CheckoutPage() {
     return addresses?.find((a: any) => a.id === selectedAddressId);
   }, [addresses, selectedAddressId]);
 
+  const saveOrderToFirestore = async (paymentId?: string) => {
+    if (!user || !db || !selectedAddress) return;
+
+    const orderData = {
+      userId: user.uid,
+      items: cart,
+      totalAmount: cartTotal,
+      status: "Processing",
+      paymentMethod,
+      razorpayPaymentId: paymentId || null,
+      email,
+      phone,
+      shippingAddress: selectedAddress,
+      createdAt: serverTimestamp(),
+      itemsCount: cart.length
+    };
+
+    const ordersRef = collection(db, "users", user.uid, "orders");
+    await addDoc(ordersRef, orderData);
+    router.push("/checkout/success");
+  };
+
+  const handleRazorpayPayment = async () => {
+    const res = await createRazorpayOrder(cartTotal);
+    
+    if (!res.success || !res.order) {
+      toast({ variant: "destructive", title: "Payment Error", description: res.error || "Could not initiate payment." });
+      setLoading(false);
+      return;
+    }
+
+    const options = {
+      key: "rzp_live_SiuQXDGuUvawLa",
+      amount: res.order.amount,
+      currency: res.order.currency,
+      name: "VILORYI",
+      description: "Premium Fashion Collection",
+      order_id: res.order.id,
+      handler: async function (response: any) {
+        // Payment successful
+        await saveOrderToFirestore(response.razorpay_payment_id);
+      },
+      prefill: {
+        name: user?.displayName || "",
+        email: email,
+        contact: phone,
+      },
+      theme: {
+        color: "#191919",
+      },
+      modal: {
+        ondismiss: function() {
+          setLoading(false);
+        }
+      }
+    };
+
+    const rzp = new (window as any).Razorpay(options);
+    rzp.open();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !db || !selectedAddress) {
@@ -69,28 +134,18 @@ export default function CheckoutPage() {
     }
 
     setLoading(true);
-    
-    const orderData = {
-      userId: user.uid,
-      items: cart,
-      totalAmount: cartTotal,
-      status: "Processing",
-      email,
-      phone,
-      shippingAddress: selectedAddress,
-      createdAt: serverTimestamp(),
-      itemsCount: cart.length
-    };
 
-    try {
-      const ordersRef = collection(db, "users", user.uid, "orders");
-      await addDoc(ordersRef, orderData);
-      router.push("/checkout/success");
-    } catch (err) {
-      console.error("Order creation error:", err);
-      toast({ variant: "destructive", title: "Order Failed", description: "Could not place your order. Please try again." });
-    } finally {
-      setLoading(false);
+    if (paymentMethod === "upi") {
+      await handleRazorpayPayment();
+    } else {
+      // Cash on Delivery
+      try {
+        await saveOrderToFirestore();
+      } catch (err) {
+        console.error("Order creation error:", err);
+        toast({ variant: "destructive", title: "Order Failed", description: "Could not place your order. Please try again." });
+        setLoading(false);
+      }
     }
   };
 
@@ -113,6 +168,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <header className="border-b bg-background sticky top-0 z-50">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-2xl font-headline font-bold tracking-widest">VILORYI</Link>
@@ -196,10 +252,10 @@ export default function CheckoutPage() {
                           <div className="flex items-start gap-4">
                             <RadioGroupItem value={addr.id} id={`addr-${addr.id}`} className="mt-1" />
                             <div className="space-y-1">
-                              <p className="text-sm font-bold uppercase flex items-center gap-2">
+                              <div className="text-sm font-bold uppercase flex items-center gap-2">
                                 {addr.name}
                                 <Badge className="text-[8px] bg-muted text-primary hover:bg-muted rounded-none">{addr.type}</Badge>
-                              </p>
+                              </div>
                               <p className="text-xs text-muted-foreground font-light leading-relaxed">
                                 {addr.houseNo}, {addr.building}, {addr.locality}<br />
                                 {addr.city}, {addr.state} - {addr.pincode}
@@ -222,10 +278,13 @@ export default function CheckoutPage() {
                     <span className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">3</span>
                     <h2 className="text-xl font-headline font-bold uppercase tracking-widest">Payment Method</h2>
                   </div>
-                  <RadioGroup defaultValue="upi" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Label
                       htmlFor="upi"
-                      className="flex items-center justify-between p-4 border cursor-pointer hover:border-accent transition-all data-[state=checked]:border-accent"
+                      className={cn(
+                        "flex items-center justify-between p-4 border cursor-pointer transition-all",
+                        paymentMethod === 'upi' ? "border-accent bg-accent/5" : "hover:border-accent"
+                      )}
                     >
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="upi" id="upi" />
@@ -234,7 +293,10 @@ export default function CheckoutPage() {
                     </Label>
                     <Label
                       htmlFor="cod"
-                      className="flex items-center justify-between p-4 border cursor-pointer hover:border-accent transition-all"
+                      className={cn(
+                        "flex items-center justify-between p-4 border cursor-pointer transition-all",
+                        paymentMethod === 'cod' ? "border-accent bg-accent/5" : "hover:border-accent"
+                      )}
                     >
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="cod" id="cod" />
@@ -253,7 +315,7 @@ export default function CheckoutPage() {
               </form>
             </div>
 
-            {/* Right: Order Summary */}
+            {/* Order Summary */}
             <div className="lg:col-span-5">
               <div className="bg-muted/30 p-8 sticky top-32">
                 <h3 className="text-xl font-headline font-bold uppercase tracking-widest mb-8">Order Summary</h3>

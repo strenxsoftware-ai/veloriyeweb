@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect } from "react";
@@ -108,53 +109,55 @@ export default function OrdersPage() {
           ) : (
             <div className="grid grid-cols-1 gap-6 animate-fade-in">
               {orders.map((order) => (
-                <Card key={order.id} className="rounded-none border-muted hover:border-accent transition-all group overflow-hidden shadow-none">
-                  <CardContent className="p-0">
-                    <div className="p-6 flex flex-col md:flex-row justify-between gap-6 border-b border-muted bg-muted/5">
-                      <div className="flex flex-wrap items-center gap-6">
-                        <div className="space-y-1">
-                          <p className="text-[10px] tracking-widest font-bold uppercase opacity-50">Order Number</p>
-                          <p className="text-sm font-bold">#{order.id.slice(-8).toUpperCase()}</p>
+                <Link key={order.id} href={`/profile/orders/${order.id}`}>
+                  <Card className="rounded-none border-muted hover:border-accent transition-all group overflow-hidden shadow-none cursor-pointer">
+                    <CardContent className="p-0">
+                      <div className="p-6 flex flex-col md:flex-row justify-between gap-6 border-b border-muted bg-muted/5">
+                        <div className="flex flex-wrap items-center gap-6">
+                          <div className="space-y-1">
+                            <p className="text-[10px] tracking-widest font-bold uppercase opacity-50">Order Number</p>
+                            <p className="text-sm font-bold">#{order.id.slice(-8).toUpperCase()}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] tracking-widest font-bold uppercase opacity-50">Date Placed</p>
+                            <p className="text-sm font-medium">
+                              {order.createdAt?.seconds 
+                                ? format(new Date(order.createdAt.seconds * 1000), 'PPP') 
+                                : 'Recent'}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] tracking-widest font-bold uppercase opacity-50">Total Amount</p>
+                            <p className="text-sm font-bold text-accent">₹{order.totalAmount?.toLocaleString()}</p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-[10px] tracking-widest font-bold uppercase opacity-50">Date Placed</p>
-                          <p className="text-sm font-medium">
-                            {order.createdAt?.seconds 
-                              ? format(new Date(order.createdAt.seconds * 1000), 'PPP') 
-                              : 'Recent'}
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[10px] tracking-widest font-bold uppercase opacity-50">Total Amount</p>
-                          <p className="text-sm font-bold text-accent">₹{order.totalAmount?.toLocaleString()}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="rounded-none border-muted px-4 py-1.5 flex gap-2 items-center bg-white shadow-sm">
-                          {getStatusIcon(order.status)}
-                          <span className="text-[9px] tracking-[0.2em] font-bold uppercase">
-                            {order.status || 'Pending'}
-                          </span>
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6 flex items-center justify-between group-hover:bg-muted/10 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-muted flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-white transition-all">
-                          <Package className="w-5 h-5" />
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-bold uppercase tracking-widest">Order Details</h4>
-                          <p className="text-[10px] text-muted-foreground font-light italic">
-                            {order.itemsCount || 1} item(s) • Ship to: {order.shippingAddress?.city || 'Address on file'}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="rounded-none border-muted px-4 py-1.5 flex gap-2 items-center bg-white shadow-sm">
+                            {getStatusIcon(order.status)}
+                            <span className="text-[9px] tracking-[0.2em] font-bold uppercase">
+                              {order.status || 'Pending'}
+                            </span>
+                          </Badge>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </CardContent>
-                </Card>
+                      
+                      <div className="p-6 flex items-center justify-between group-hover:bg-muted/10 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-muted flex items-center justify-center text-primary group-hover:bg-accent group-hover:text-white transition-all">
+                            <Package className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-bold uppercase tracking-widest">View Details</h4>
+                            <p className="text-[10px] text-muted-foreground font-light italic">
+                              {order.itemsCount || 1} item(s) • Ship to: {order.shippingAddress?.city || 'Address on file'}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}

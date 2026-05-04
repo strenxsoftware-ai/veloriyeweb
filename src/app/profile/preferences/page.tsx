@@ -29,6 +29,9 @@ import { cn } from "@/lib/utils";
 
 type EditSection = 'basic' | 'topwear' | 'bottomwear' | 'body' | 'success' | null;
 
+const BAND_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42", "44"];
+const CUP_SIZES = ["A", "B", "C", "D", "DD", "E", "F"];
+
 export default function PreferencesPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
@@ -49,6 +52,7 @@ export default function PreferencesPage() {
     bottomwearSize: "",
     height: "",
     weight: "",
+    bustSize: "",
     shape: "",
     size: "",
     braSize: {
@@ -195,6 +199,7 @@ export default function PreferencesPage() {
           <CardContent className="pt-6 space-y-3">
             <DetailItem label="Height" value={formData.height || "Not set"} />
             <DetailItem label="Weight" value={formData.weight || "Not set"} />
+            <DetailItem label="Bust Size" value={formData.bustSize || "Not set"} />
             {formData.braSize?.band && <DetailItem label="Bra Size" value={`${formData.braSize.band}${formData.braSize.cup}`} />}
           </CardContent>
         </Card>
@@ -363,7 +368,7 @@ export default function PreferencesPage() {
         return (
           <div className="space-y-8 animate-fade-in">
             <SectionHeader title="Edit Body & Fit Details" />
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] tracking-widest font-bold uppercase">Height</Label>
@@ -384,26 +389,43 @@ export default function PreferencesPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-4">
-                <Label className="text-[10px] tracking-widest font-bold uppercase">Bra Size (Optional)</Label>
-                <div className="flex gap-4">
-                  <div className="flex-1 space-y-2">
-                    <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Band</span>
-                    <input 
-                      value={formData.braSize.band} 
-                      onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, band: e.target.value}})} 
-                      placeholder="32" 
-                      className="w-full rounded-none h-10 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
-                    />
+
+              <div className="space-y-2">
+                <Label className="text-[10px] tracking-widest font-bold uppercase">Bust Size</Label>
+                <input 
+                  value={formData.bustSize} 
+                  onChange={(e) => setFormData({...formData, bustSize: e.target.value})} 
+                  placeholder="e.g. 34 inches" 
+                  className="w-full rounded-none h-12 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
+                />
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-[10px] tracking-widest font-bold uppercase">Bra Band Size</Label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {BAND_SIZES.map(band => (
+                      <SelectableButton 
+                        key={band} 
+                        label={band} 
+                        active={formData.braSize?.band === band} 
+                        onClick={() => setFormData({...formData, braSize: {...formData.braSize, band}})} 
+                      />
+                    ))}
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <span className="text-[8px] tracking-[0.2em] font-bold uppercase opacity-50">Cup</span>
-                    <input 
-                      value={formData.braSize.cup} 
-                      onChange={(e) => setFormData({...formData, braSize: {...formData.braSize, cup: e.target.value}})} 
-                      placeholder="B" 
-                      className="w-full rounded-none h-10 border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
-                    />
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-[10px] tracking-widest font-bold uppercase">Cup Size</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {CUP_SIZES.map(cup => (
+                      <SelectableButton 
+                        key={cup} 
+                        label={cup} 
+                        active={formData.braSize?.cup === cup} 
+                        onClick={() => setFormData({...formData, braSize: {...formData.braSize, cup}})} 
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
@@ -462,9 +484,10 @@ const SectionHeader = ({ title, className }: { title: string; className?: string
 
 const SelectableButton = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
   <button
+    type="button"
     onClick={onClick}
     className={cn(
-      "flex-1 min-w-[80px] h-12 flex items-center justify-center border text-[10px] tracking-widest font-bold uppercase transition-all",
+      "flex-1 min-w-[50px] h-12 flex items-center justify-center border text-[10px] tracking-widest font-bold uppercase transition-all",
       active ? "border-primary bg-primary text-white" : "border-muted hover:border-accent text-muted-foreground"
     )}
   >

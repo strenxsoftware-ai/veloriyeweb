@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useShop } from "@/context/ShopContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CartDrawer } from "@/components/shop/CartDrawer";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 
@@ -18,6 +19,7 @@ export const Navbar = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { cart, setIsCartOpen, isCartOpen } = useShop();
   const { user } = useUser();
+  const db = useFirestore();
 
   useEffect(() => {
     setMounted(true);
@@ -28,7 +30,17 @@ export const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user?.uid]);
+
+  const { data: userData } = useDoc(userRef);
+
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
+
+  const displayPhotoURL = userData?.photoURL || user?.photoURL || "";
+  const displayName = userData?.displayName || user?.displayName || "U";
 
   return (
     <nav
@@ -92,9 +104,9 @@ export const Navbar = () => {
               {user ? (
                 <Link href="/profile">
                   <Avatar className="w-8 h-8 border border-muted hover:border-accent transition-colors">
-                    <AvatarImage src={user.photoURL || ""} alt={user.displayName || "User"} />
+                    <AvatarImage src={displayPhotoURL} alt={displayName} />
                     <AvatarFallback className="bg-muted text-[10px] font-bold">
-                      {user.displayName?.charAt(0) || "U"}
+                      {displayName.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                 </Link>

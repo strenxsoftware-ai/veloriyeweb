@@ -9,19 +9,19 @@
     {
       "id": "category-kurti-sets",
       "description": "Collection of Kurti Sets",
-      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/f518d7ee36816cdbb2a0623d4809f91d97ab6838/wmremove-transformed%20(1).png",
+      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryi-mee/f518d7ee36816cdbb2a0623d4809f91d97ab6838/wmremove-transformed%20(1).png",
       "imageHint": "fashion dress"
     },
     {
       "id": "category-kurtis",
       "description": "Modern Kurtis for women",
-      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/f518d7ee36816cdbb2a0623d4809f91d97ab6838/wmremove-transformed.png",
+      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryi-mee/f518d7ee36816cdbb2a0623d4809f91d97ab6838/wmremove-transformed.png",
       "imageHint": "minimalist clothing"
     },
     {
       "id": "category-coord-sets",
       "description": "Trendy Co-ord Sets",
-      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryimee/f518d7ee36816cdbb2a0623d4809f91d97ab6838/_storage_emulated_0_DCIM_Screenshots_IMG_20260424_091322.jpg",
+      "imageUrl": "https://raw.githubusercontent.com/strenxsoftware-ai/viloryi-mee/f518d7ee36816cdbb2a0623d4809f91d97ab6838/_storage_emulated_0_DCIM_Screenshots_IMG_20260424_091322.jpg",
       "imageHint": "modern apparel"
     },
     {
@@ -77,6 +77,12 @@
       "description": "Fashion model portrait",
       "imageUrl": "https://picsum.photos/seed/i4/400/400",
       "imageHint": "portrait fashion"
+    },
+    {
+      "id": "size-guide",
+      "description": "Viloryi Detailed Size Chart",
+      "imageUrl": "/size_chart.png",
+      "imageHint": "size chart"
     }
   ]
 }

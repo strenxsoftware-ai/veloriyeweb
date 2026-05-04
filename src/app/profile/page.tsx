@@ -1,11 +1,13 @@
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
+import { doc, updateDoc } from "firebase/firestore";
 import { 
   User, 
   Settings, 
@@ -15,7 +17,8 @@ import {
   LogOut, 
   Camera,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,14 +30,25 @@ import { toast } from "@/hooks/use-toast";
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push("/");
     }
   }, [user, isUserLoading, router]);
+
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user?.uid) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user?.uid]);
+
+  const { data: userData } = useDoc(userRef);
 
   const handleLogout = async () => {
     if (!auth) return;
@@ -55,6 +69,80 @@ export default function ProfilePage() {
     } finally {
       setIsLoggingOut(false);
     }
+  };
+
+  const resizeImage = (base64Str: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !userRef) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: "destructive", title: "Invalid File", description: "Please select an image file." });
+      return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    
+    reader.onload = async (event) => {
+      const rawBase64 = event.target?.result as string;
+      
+      try {
+        const optimizedBase64 = await resizeImage(rawBase64);
+        
+        // We only update Firestore because Firebase Auth's photoURL has a strict length limit
+        // which Base64 data strings often exceed.
+        await updateDoc(userRef, { photoURL: optimizedBase64 });
+        
+        toast({ title: "Profile Updated", description: "Your profile picture has been changed." });
+      } catch (error: any) {
+        console.error("Profile update error:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: { photoURL: 'image_data_updated' }
+        }));
+      } finally {
+        setIsUploading(false);
+      }
+    };
+
+    reader.onerror = () => {
+      toast({ variant: "destructive", title: "Error", description: "Failed to read file." });
+      setIsUploading(false);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   if (isUserLoading) {
@@ -103,6 +191,8 @@ export default function ProfilePage() {
     },
   ];
 
+  const displayPhotoURL = userData?.photoURL || user.photoURL || "";
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -111,17 +201,32 @@ export default function ProfilePage() {
         <div className="container mx-auto max-w-4xl">
           <div className="flex flex-col md:flex-row items-center gap-8 mb-16 animate-fade-in">
             <div className="relative group">
-              <Avatar className="w-32 h-32 border-2 border-muted">
-                <AvatarImage src={user.photoURL || ""} alt={user.displayName || "User"} />
-                <AvatarFallback className="text-3xl font-headline">{user.displayName?.charAt(0)}</AvatarFallback>
+              <Avatar className="w-32 h-32 border-2 border-muted overflow-hidden">
+                <AvatarImage src={displayPhotoURL} alt={userData?.displayName || user.displayName || "User"} className="object-cover" />
+                <AvatarFallback className="text-3xl font-headline bg-muted">
+                  {isUploading ? <Loader2 className="w-8 h-8 animate-spin text-accent" /> : (userData?.displayName || user.displayName)?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
-              <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full border-2 border-background hover:bg-accent transition-colors">
-                <Camera className="w-4 h-4" />
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full border-2 border-background hover:bg-accent transition-colors disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
               </button>
+              
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/*" 
+                className="hidden" 
+              />
             </div>
             <div className="text-center md:text-left space-y-2">
-              <h1 className="text-4xl font-headline font-bold text-primary">{user.displayName}</h1>
-              <p className="text-muted-foreground font-light">{user.email}</p>
+              <h1 className="text-4xl font-headline font-bold text-primary">{userData?.displayName || user.displayName}</h1>
+              <p className="text-muted-foreground font-light">{userData?.email || user.email || userData?.mobile || "Premium Member"}</p>
               <div className="inline-block px-3 py-1 bg-accent/10 text-accent text-[10px] font-bold tracking-widest uppercase mt-2">
                 Premium Member
               </div>

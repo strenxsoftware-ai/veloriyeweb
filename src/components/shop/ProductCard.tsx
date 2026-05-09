@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useShop, type Product } from "@/context/ShopContext";
+import { useShop, type Product, getEffectivePrice, getDiscountPercentage } from "@/context/ShopContext";
 import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { Eye, Heart, ShoppingBag } from "lucide-react";
@@ -75,6 +75,9 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
   };
 
   const mainImage = product.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
+  const effectivePrice = getEffectivePrice(product);
+  const discountPercent = getDiscountPercentage(product);
+  const originalPrice = product.originalPrice || product.price;
 
   return (
     <>
@@ -87,6 +90,12 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
           
+          {discountPercent > 0 && (
+            <div className="absolute top-3 left-3 z-10 bg-accent text-white text-[10px] font-bold px-2 py-1 tracking-widest uppercase">
+              {discountPercent}% OFF
+            </div>
+          )}
+
           <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           <div className="absolute inset-x-0 bottom-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 space-y-2">
@@ -123,7 +132,12 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
               {product.name}
             </h3>
           </Link>
-          <p className="font-semibold tracking-wider">₹{product.price.toLocaleString()}</p>
+          <div className="flex items-center justify-center gap-3">
+            <p className="font-bold tracking-wider text-primary">₹{effectivePrice.toLocaleString()}</p>
+            {discountPercent > 0 && (
+              <p className="text-xs text-muted-foreground line-through decoration-muted-foreground/60">₹{originalPrice.toLocaleString()}</p>
+            )}
+          </div>
         </div>
       </div>
 

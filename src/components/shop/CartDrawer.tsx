@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { useShop } from "@/context/ShopContext";
+import { useShop, getEffectivePrice } from "@/context/ShopContext";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
@@ -38,6 +38,8 @@ export const CartDrawer = () => {
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {cart.map((item) => {
           const displayImage = item.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
+          const effectivePrice = getEffectivePrice(item);
+          
           return (
             <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
               <Link 
@@ -80,7 +82,7 @@ export const CartDrawer = () => {
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
-                  <p className="text-sm font-semibold tracking-wide">₹{item.price.toLocaleString()}</p>
+                  <p className="text-sm font-semibold tracking-wide">₹{effectivePrice.toLocaleString()}</p>
                 </div>
               </div>
             </div>

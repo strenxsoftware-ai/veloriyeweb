@@ -8,8 +8,10 @@ import { collection, Timestamp } from "firebase/firestore";
 export type Product = {
   id: string;
   name: string;
-  price: number;
-  category: string; // The ID of the category (e.g., 'kurti-sets')
+  price: number; // Keep for legacy but derive effective price
+  originalPrice: number;
+  discountPrice?: number;
+  category: string;
   images: string[];
   description: string;
   materials: string;
@@ -36,6 +38,20 @@ type ShopContextType = {
 };
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
+
+export const getEffectivePrice = (product: Product | any) => {
+  if (product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice > 0) {
+    return product.discountPrice;
+  }
+  return product.originalPrice || product.price || 0;
+};
+
+export const getDiscountPercentage = (product: Product | any) => {
+  const original = product.originalPrice || product.price;
+  const discount = product.discountPrice;
+  if (!original || !discount || discount >= original) return 0;
+  return Math.round(((original - discount) / original) * 100);
+};
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -95,7 +111,10 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem("viloryi-cart");
   };
 
-  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const cartTotal = cart.reduce((total, item) => {
+    const effectivePrice = getEffectivePrice(item);
+    return total + effectivePrice * item.quantity;
+  }, 0);
 
   return (
     <ShopContext.Provider

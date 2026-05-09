@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import { ProductCard } from "./ProductCard";
-import { useShop } from "@/context/ShopContext";
+import { useShop, getEffectivePrice } from "@/context/ShopContext";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { 
@@ -43,11 +43,14 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
   const { data: category, isLoading: isCategoryLoading } = useDoc(categoryRef);
 
   const filteredProducts = useMemo(() => {
-    // Filter by the category ID field (now named 'category')
+    // Filter by the category ID field
     let result = products.filter(p => p.category === categorySlug);
 
-    // Filter by Price
-    result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    // Filter by Price (using Effective Price)
+    result = result.filter(p => {
+      const effectivePrice = getEffectivePrice(p);
+      return effectivePrice >= priceRange[0] && effectivePrice <= priceRange[1];
+    });
 
     // Filter by Size
     if (selectedSizes.length > 0) {
@@ -56,10 +59,12 @@ export const CategoryContent = ({ categorySlug }: { categorySlug: string }) => {
       );
     }
 
-    // Sort
+    // Sort (using Effective Price)
     result.sort((a, b) => {
-      if (sortBy === "price-low") return a.price - b.price;
-      if (sortBy === "price-high") return b.price - a.price;
+      const priceA = getEffectivePrice(a);
+      const priceB = getEffectivePrice(b);
+      if (sortBy === "price-low") return priceA - priceB;
+      if (sortBy === "price-high") return priceB - priceA;
       return 0;
     });
 

@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useShop } from "@/context/ShopContext";
+import { useShop, getEffectivePrice } from "@/context/ShopContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,9 +69,15 @@ export default function CheckoutPage() {
   const saveOrderToFirestore = async (paymentId?: string) => {
     if (!user || !db || !selectedAddress) return;
 
+    // Use discountPrice logic for items in the saved order
+    const orderItems = cart.map(item => ({
+      ...item,
+      priceAtPurchase: getEffectivePrice(item)
+    }));
+
     const orderData = {
       userId: user.uid,
-      items: cart,
+      items: orderItems,
       totalAmount: cartTotal,
       status: "Processing",
       paymentMethod,
@@ -241,32 +248,34 @@ export default function CheckoutPage() {
                   ) : (
                     <RadioGroup value={selectedAddressId || ""} onValueChange={setSelectedAddressId} className="grid grid-cols-1 gap-4">
                       {addresses.map((addr: any) => (
-                        <Label
-                          key={addr.id}
-                          htmlFor={`addr-${addr.id}`}
-                          className={cn(
-                            "flex items-start justify-between p-6 border cursor-pointer transition-all",
-                            selectedAddressId === addr.id ? "border-accent bg-accent/5" : "border-muted hover:border-accent/50"
-                          )}
-                        >
-                          <div className="flex items-start gap-4">
-                            <RadioGroupItem value={addr.id} id={`addr-${addr.id}`} className="mt-1" />
-                            <div className="space-y-1">
-                              <div className="text-sm font-bold uppercase flex items-center gap-2">
-                                {addr.name}
-                                <Badge className="text-[8px] bg-muted text-primary hover:bg-muted rounded-none">{addr.type}</Badge>
+                        <div key={addr.id}>
+                          <input type="radio" value={addr.id} id={`addr-${addr.id}`} className="peer hidden" />
+                          <Label
+                            htmlFor={`addr-${addr.id}`}
+                            className={cn(
+                              "flex items-start justify-between p-6 border cursor-pointer transition-all",
+                              selectedAddressId === addr.id ? "border-accent bg-accent/5" : "border-muted hover:border-accent/50"
+                            )}
+                          >
+                            <div className="flex items-start gap-4">
+                              <RadioGroupItem value={addr.id} id={`addr-${addr.id}`} className="mt-1" />
+                              <div className="space-y-1">
+                                <div className="text-sm font-bold uppercase flex items-center gap-2">
+                                  <span>{addr.name}</span>
+                                  <Badge className="text-[8px] bg-muted text-primary hover:bg-muted rounded-none">{addr.type}</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                                  {addr.houseNo}, {addr.building}, {addr.locality}<br />
+                                  {addr.city}, {addr.state} - {addr.pincode}
+                                </p>
+                                <p className="text-xs font-medium pt-1">{addr.mobile}</p>
                               </div>
-                              <p className="text-xs text-muted-foreground font-light leading-relaxed">
-                                {addr.houseNo}, {addr.building}, {addr.locality}<br />
-                                {addr.city}, {addr.state} - {addr.pincode}
-                              </p>
-                              <p className="text-xs font-medium pt-1">{addr.mobile}</p>
                             </div>
-                          </div>
-                          <Link href={`/profile/address/manage?id=${addr.id}`} onClick={(e) => e.stopPropagation()}>
-                            <Pencil className="w-4 h-4 text-muted-foreground hover:text-accent" />
-                          </Link>
-                        </Label>
+                            <Link href={`/profile/address/manage?id=${addr.id}`} onClick={(e) => e.stopPropagation()}>
+                              <Pencil className="w-4 h-4 text-muted-foreground hover:text-accent" />
+                            </Link>
+                          </Label>
+                        </div>
                       ))}
                     </RadioGroup>
                   )}
@@ -322,6 +331,8 @@ export default function CheckoutPage() {
                 <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {cart.map((item) => {
                     const displayImage = item.images?.[0] || "https://picsum.photos/seed/placeholder/600/800";
+                    const effectivePrice = getEffectivePrice(item);
+                    
                     return (
                       <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4">
                         <div className="relative w-16 h-20 bg-muted flex-shrink-0">
@@ -330,7 +341,7 @@ export default function CheckoutPage() {
                         <div className="flex-1 space-y-1">
                           <h4 className="text-xs font-bold uppercase tracking-tight">{item.name}</h4>
                           <p className="text-[10px] text-muted-foreground uppercase font-medium">Qty: {item.quantity} • Size: {item.selectedSize}</p>
-                          <p className="text-xs font-bold">₹{(item.price * item.quantity).toLocaleString()}</p>
+                          <p className="text-xs font-bold">₹{(effectivePrice * item.quantity).toLocaleString()}</p>
                         </div>
                       </div>
                     );

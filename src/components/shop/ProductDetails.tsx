@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { useShop } from "@/context/ShopContext";
+import { useShop, getEffectivePrice, getDiscountPercentage } from "@/context/ShopContext";
 import { Button } from "@/components/ui/button";
 import { 
   ShoppingBag, 
@@ -16,7 +16,8 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCw,
-  X
+  X,
+  Tag
 } from "lucide-react";
 import { 
   Accordion, 
@@ -35,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { LoginDialog } from "@/components/auth/LoginDialog";
+import { Badge } from "@/components/ui/badge";
 
 export const ProductDetails = ({ productId }: { productId: string }) => {
   const { products, addToCart } = useShop();
@@ -216,6 +218,10 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
   const handleZoomOut = () => setViewerZoom(prev => Math.max(prev - 0.5, 1));
   const handleResetZoom = () => setViewerZoom(1);
 
+  const effectivePrice = getEffectivePrice(product);
+  const discountPercent = getDiscountPercentage(product);
+  const originalPrice = product.originalPrice || product.price;
+
   return (
     <section className="container mx-auto px-6 pb-24">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 xl:gap-24">
@@ -240,6 +246,11 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
                 <Maximize2 className="w-4 h-4" />
               </Button>
             </div>
+            {discountPercent > 0 && (
+              <div className="absolute top-6 left-6 z-10 bg-accent text-white text-xs font-bold px-4 py-2 tracking-[0.2em] uppercase shadow-lg">
+                {discountPercent}% OFF
+              </div>
+            )}
           </div>
           
           <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
@@ -269,9 +280,24 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
             <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary tracking-tight">
               {product.name}
             </h1>
-            <p className="text-2xl font-semibold tracking-wider text-accent">
-              ₹{product.price.toLocaleString()}
-            </p>
+            
+            <div className="flex flex-col gap-1">
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl font-semibold tracking-wider text-accent">
+                  ₹{effectivePrice.toLocaleString()}
+                </span>
+                {discountPercent > 0 && (
+                  <span className="text-lg text-muted-foreground line-through decoration-muted-foreground/60">
+                    ₹{originalPrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+              {discountPercent > 0 && (
+                <p className="text-xs font-bold text-green-600 uppercase tracking-widest flex items-center gap-2">
+                  <Tag className="w-3 h-3" /> You save ₹{(originalPrice - effectivePrice).toLocaleString()} ({discountPercent}%)
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -455,7 +481,7 @@ export const ProductDetails = ({ productId }: { productId: string }) => {
       {/* Mobile Sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md p-4 border-t flex gap-4 animate-in slide-in-from-bottom duration-500">
         <div className="flex-1 flex flex-col justify-center">
-          <p className="font-bold text-sm tracking-wider">₹{product.price.toLocaleString()}</p>
+          <p className="font-bold text-sm tracking-wider">₹{effectivePrice.toLocaleString()}</p>
           <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">{selectedSize || "Select Size"}</p>
         </div>
         <Button onClick={handleAddToCart} disabled={product.stock === 0} className="bg-primary text-white rounded-none px-8 tracking-widest text-xs font-bold py-6 h-auto">
